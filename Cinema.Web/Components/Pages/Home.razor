@@ -1,0 +1,254 @@
+﻿@page "/"
+@inject IViewMoviesUseCase ViewMoviesUseCase
+@inject IViewShowtimesUseCase ViewShowtimesUseCase
+@inject NavigationManager Navigation
+
+<PageTitle>CineStar Huế - Phim Đang Chiếu &amp; Lịch Chiếu</PageTitle>
+
+<!-- Hero Section -->
+<section class="py-4 py-md-5 mb-4" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-bottom: 1px solid #bfdbfe;">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="badge bg-primary px-3 py-2 text-uppercase fw-bold mb-2" style="letter-spacing: 1px;">
+                    <i class="bi bi-star-fill me-1"></i> Rạp Chiếu Phim Đẳng Cấp Tại Huế
+                </span>
+                <h1 class="display-5 fw-extrabold text-slate-900 mb-3" style="font-weight: 800;">
+                    Chọn Ghế Nhanh Chóng &amp; Trải Nghiệm Điện Ảnh Đỉnh Cao
+                </h1>
+                <p class="lead text-secondary mb-4">
+                    Thưởng thức các bom tấn điện ảnh mới nhất với công nghệ âm thanh <strong>Dolby Atmos</strong> và màn chiếu cực đại <strong>IMAX Laser</strong>. Chọn vị trí ghế ngồi yêu thích chỉ trong vài thao tác!
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#movies-section" class="btn btn-primary btn-lg px-4 py-2" style="border-radius: 10px; font-weight: 700;">
+                        <i class="bi bi-ticket-perforated me-2"></i>Xem Phim &amp; Đặt Vé Ngay
+                    </a>
+                    <a href="/lookup" class="btn btn-outline-secondary btn-lg px-4 py-2" style="border-radius: 10px; font-weight: 600; background: #fff;">
+                        <i class="bi bi-search me-2"></i>Tra Cứu Vé Đã Đặt
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center d-none d-lg-block">
+                <div class="card p-3 shadow-lg border-0 bg-white" style="border-radius: 20px; transform: rotate(2deg);">
+                    <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80" 
+                         alt="Cinema banner" class="img-fluid rounded-3" style="height: 240px; object-fit: cover;">
+                    <div class="mt-3 text-start">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-success">Đang Chiếu</span>
+                            <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>9.8 / 10</span>
+                        </div>
+                        <h6 class="fw-bold mt-2 mb-0">CineStar Huế - Dolby Atmos</h6>
+                        <small class="text-muted">Phòng chiếu tiêu chuẩn quốc tế</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Movies List -->
+<div class="container my-5" id="movies-section">
+    <!-- Header with Date Filters -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold text-slate-900 mb-1">
+                <i class="bi bi-camera-reels-fill text-primary me-2"></i>Phim Đang Chiếu
+            </h2>
+            <p class="text-muted mb-0">Chọn suất chiếu phù hợp để xem sơ đồ phòng và chọn ghế ngồi yêu thích.</p>
+        </div>
+
+        <div class="btn-group shadow-sm p-1 bg-white border rounded-pill">
+            <button class="btn btn-sm rounded-pill px-3 @(_selectedDateFilter == 0 ? "btn-primary text-white fw-bold" : "btn-light text-muted")"
+                    @onclick="() => FilterByDate(0)">
+                Hôm Nay (@DateTime.Today.ToString("dd/MM"))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 @(_selectedDateFilter == 1 ? "btn-primary text-white fw-bold" : "btn-light text-muted")"
+                    @onclick="() => FilterByDate(1)">
+                Ngày Mai (@DateTime.Today.AddDays(1).ToString("dd/MM"))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 @(_selectedDateFilter == 2 ? "btn-primary text-white fw-bold" : "btn-light text-muted")"
+                    @onclick="() => FilterByDate(2)">
+                Tất Cả Suất Chiếu
+            </button>
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải danh sách phim...</span>
+            </div>
+            <p class="text-muted mt-2">Đang tải lịch chiếu phim từ hệ thống...</p>
+        </div>
+    }
+    else if (!_movies.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="bi bi-info-circle-fill me-2 fs-5"></i>Hiện tại chưa có suất chiếu nào trong khoảng thời gian này.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var movie in _movies)
+            {
+                var movieShowtimes = _showtimes.Where(s => s.MovieId == movie.MovieId).OrderBy(s => s.StartTime).ToList();
+                
+                <div class="col-xl-6 col-12">
+                    <div class="card movie-card h-100 p-3">
+                        <div class="row g-3 h-100">
+                            <!-- Movie Poster -->
+                            <div class="col-sm-4 col-12">
+                                <div class="movie-poster-wrap rounded-3 shadow-sm position-relative">
+                                    <img src="@movie.PosterUrl" alt="@movie.Title" class="movie-poster-img" />
+                                    <!-- Age Rating Badge -->
+                                    <span class="age-badge @GetAgeBadgeClass(movie.AgeRating)">
+                                        @movie.AgeRating
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Movie Info & Showtimes -->
+                            <div class="col-sm-8 col-12 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h4 class="fw-bold text-slate-900 mb-0">@movie.Title</h4>
+                                    </div>
+                                    <div class="small text-muted mb-2">
+                                        <span class="me-2"><i class="bi bi-clock me-1 text-primary"></i>@movie.DurationMinutes phút</span>
+                                        <span class="me-2">•</span>
+                                        <span><i class="bi bi-tags me-1 text-primary"></i>@movie.Genre</span>
+                                    </div>
+
+                                    <p class="small text-secondary mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        @movie.Description
+                                    </p>
+
+                                    <div class="small text-muted mb-2">
+                                        <div><strong>Đạo diễn:</strong> @movie.Director</div>
+                                        <div class="text-truncate"><strong>Diễn viên:</strong> @movie.Cast</div>
+                                    </div>
+                                </div>
+
+                                <!-- Showtimes Grid -->
+                                <div class="mt-3 pt-2 border-top">
+                                    <div class="fw-bold small text-slate-800 mb-2">
+                                        <i class="bi bi-clock-history text-primary me-1"></i>Suất Chiếu Khả Dụng:
+                                    </div>
+
+                                    @if (!movieShowtimes.Any())
+                                    {
+                                        <div class="badge bg-light text-muted border p-2">Không có suất chiếu trong ngày chọn</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach (var st in movieShowtimes)
+                                            {
+                                                <a href="/booking/@st.ShowtimeId" class="showtime-pill">
+                                                    <span>@st.StartTime.ToString("HH:mm")</span>
+                                                    <span class="screen-tag">@st.ScreenType</span>
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Benefits Grid -->
+<div class="bg-white py-5 border-top">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="text-primary fs-1 mb-2">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                    </div>
+                    <h5 class="fw-bold">Chọn Ghế Trực Quan</h5>
+                    <p class="text-muted small">Sơ đồ ghế hiển thị trực quan theo hàng và loại ghế (Thường, VIP, Đôi Sweetbox). Tránh hoàn toàn tranh chấp ghế.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="text-primary fs-1 mb-2">
+                        <i class="bi bi-qr-code-scan"></i>
+                    </div>
+                    <h5 class="fw-bold">Vé Điện Tử Tức Thì</h5>
+                    <p class="text-muted small">Nhận mã vé và mã QR ngay sau khi đặt vé thành công. Vào rạp quét mã vé nhanh gọn, không cần in vé giấy.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="text-primary fs-1 mb-2">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold">Kiến Trúc Chuẩn Mực</h5>
+                    <p class="text-muted small">Hệ thống tuân thủ nghiêm ngặt Clean Architecture, bảo toàn giao dịch ACID cho cặp Header-Line Booking &amp; Ticket.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Movie> _movies = new();
+    private List<Showtime> _showtimes = new();
+    private bool _isLoading = true;
+    private int _selectedDateFilter = 0; // 0: today, 1: tomorrow, 2: all
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task FilterByDate(int filter)
+    {
+        _selectedDateFilter = filter;
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var movies = (await ViewMoviesUseCase.ExecuteAsync(activeOnly: true)).ToList();
+            _movies = movies;
+
+            if (_selectedDateFilter == 2)
+            {
+                _showtimes = (await ViewShowtimesUseCase.ExecuteAllAsync()).ToList();
+            }
+            else
+            {
+                DateTime targetDate = _selectedDateFilter == 1 ? DateTime.Today.AddDays(1) : DateTime.Today;
+                _showtimes = (await ViewShowtimesUseCase.ExecuteByDateAsync(targetDate)).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading movies: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string GetAgeBadgeClass(string ageRating) => ageRating.ToUpper() switch
+    {
+        "T18" => "age-badge-t18",
+        "T16" => "age-badge-t16",
+        "T13" => "age-badge-t13",
+        "K"   => "age-badge-k",
+        _     => "age-badge-p"
+    };
+}

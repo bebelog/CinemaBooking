@@ -1,0 +1,71 @@
+﻿@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
+
+<header class="cinema-navbar">
+    <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <!-- Logo -->
+        <a href="/" class="cinema-brand">
+            <i class="bi bi-film"></i>
+            <span>CineStar <span class="text-primary">Huế</span></span>
+        </a>
+
+        <!-- Main Nav Links -->
+        <nav class="d-flex align-items-center gap-2 flex-wrap">
+            <NavLink href="" Match="NavLinkMatch.All" class="cinema-nav-link">
+                <i class="bi bi-house-door me-1"></i>Trang Chủ
+            </NavLink>
+            <NavLink href="lookup" class="cinema-nav-link">
+                <i class="bi bi-search me-1"></i>Tra Cứu Vé
+            </NavLink>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <NavLink href="admin/movies" class="cinema-nav-link">
+                        <i class="bi bi-film me-1"></i>Quản Lý Phim (Admin)
+                    </NavLink>
+                    <NavLink href="admin/showtimes" class="cinema-nav-link">
+                        <i class="bi bi-calendar3 me-1"></i>Lịch Chiếu
+                    </NavLink>
+                    <NavLink href="admin/reports" class="cinema-nav-link">
+                        <i class="bi bi-graph-up-arrow me-1"></i>Báo Cáo Tỷ Lệ Lấp Đầy
+                    </NavLink>
+                    <NavLink href="admin/bookings" class="cinema-nav-link">
+                        <i class="bi bi-receipt me-1"></i>Đơn Đặt Vé
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+        </nav>
+
+        <!-- Right Side: Student Badge & Auth -->
+        <div class="d-flex align-items-center gap-3">
+            <div class="student-tag d-none d-md-block">
+                <i class="bi bi-mortarboard-fill text-primary me-1"></i>Nguyễn Viết Mẫn (23K4080026 - HUE)
+            </div>
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            <i class="bi bi-shield-check me-1"></i>Admin
+                        </span>
+                        <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
+                            <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+                        </button>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="btn btn-primary btn-sm px-3" style="border-radius: 8px;">
+                        <i class="bi bi-person-fill me-1"></i>Đăng Nhập
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+</header>
+
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthStateProvider.LogoutAsync();
+        Navigation.NavigateTo("/");
+    }
+}

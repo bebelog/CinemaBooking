@@ -1,0 +1,217 @@
+﻿@page "/confirmation/{Reference}"
+@inject IGetBookingDetailsUseCase GetBookingDetailsUseCase
+@inject IViewShowtimesUseCase ViewShowtimesUseCase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Xác Nhận Đặt Vé Thành Công - CineStar Huế</PageTitle>
+
+<div class="container py-4">
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải thông tin vé...</span>
+            </div>
+            <p class="text-muted mt-2">Đang tải dữ liệu vé điện tử...</p>
+        </div>
+    }
+    else if (_booking == null)
+    {
+        <div class="alert alert-warning text-center py-5">
+            <i class="bi bi-question-circle fs-2 text-warning d-block mb-2"></i>
+            <h4>Không tìm thấy thông tin mã đặt vé</h4>
+            <p class="text-muted">Mã vé <strong>@Reference</strong> không tồn tại trong hệ thống hoặc đã bị hủy.</p>
+            <a href="/" class="btn btn-primary mt-2">Quay Lại Trang Chủ</a>
+        </div>
+    }
+    else
+    {
+        <!-- Success Alert Header -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-3" style="width: 64px; height: 64px; font-size: 2rem;">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h2 class="fw-bold text-slate-900">Đặt Vé Thành Công!</h2>
+            <p class="text-muted">
+                Cảm ơn quý khách <strong>@_booking.CustomerName</strong> đã lựa chọn CineStar Huế. Vé điện tử đã sẵn sàng.
+            </p>
+        </div>
+
+        <!-- E-Ticket Perforated Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="ticket-card shadow-lg mb-4">
+                    <!-- Ticket Header -->
+                    <div class="ticket-header">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <span class="badge bg-white text-primary fw-bold px-2 py-1 mb-1">VÉ ĐIỆN TỬ (E-TICKET)</span>
+                                <h3 class="fw-bold mb-0 text-white">@(_showtime?.MovieTitle ?? "CineStar Cinema")</h3>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-white-50 d-block">Mã Đơn Vé</small>
+                                <strong class="fs-5 text-warning font-monospace">@_booking.BookingReference</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Details Body -->
+                    <div class="p-4 bg-white">
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Phòng Chiếu</small>
+                                <strong class="text-slate-900 fs-6">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>@(_showtime?.AuditoriumName ?? "Phòng Chiếu")
+                                </strong>
+                                <span class="badge bg-primary-subtle text-primary ms-1">@_showtime?.ScreenType</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block">Suất Chiếu</small>
+                                <strong class="text-slate-900 fs-6">
+                                    <i class="bi bi-clock-fill text-primary me-1"></i>@_showtime?.StartTime.ToString("HH:mm - dd/MM/yyyy")
+                                </strong>
+                            </div>
+                        </div>
+
+                        <!-- Seat List -->
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-slate-800">
+                                    <i class="bi bi-grid-fill text-primary me-1"></i>Danh Sách Ghế Đã Đặt:
+                                </span>
+                                <span class="badge bg-primary">@_booking.Tickets.Count vé</span>
+                            </div>
+                            <div class="row g-2">
+                                @foreach (var ticket in _booking.Tickets)
+                                {
+                                    <div class="col-sm-6">
+                                        <div class="p-2 bg-white rounded border d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong class="text-primary fs-5">@ticket.SeatDisplayName</strong>
+                                                <span class="small text-muted ms-1">(@ticket.SeatType)</span>
+                                            </div>
+                                            <div class="text-end font-monospace small text-muted">
+                                                @ticket.TicketPrice.ToString("N0") đ
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Ticket Perforated Divider -->
+                        <div class="ticket-divider"></div>
+
+                        <!-- Customer Info & Payment Details -->
+                        <div class="row g-3 small">
+                            <div class="col-sm-6">
+                                <div class="text-muted">Họ Tên Khách Hàng:</div>
+                                <div class="fw-bold text-slate-800">@_booking.CustomerName</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted">Số Điện Thoại:</div>
+                                <div class="fw-bold text-slate-800">@_booking.CustomerPhone</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted">Email Nhận Vé:</div>
+                                <div class="fw-bold text-slate-800">@_booking.CustomerEmail</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted">Phương Thức Thanh Toán:</div>
+                                <div class="fw-bold text-slate-800">@_booking.PaymentMethod (Đã xác nhận)</div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <!-- Grand Total & QR Code Representation -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                            <div>
+                                <small class="text-muted d-block">Tổng Tiền Đã Thanh Toán</small>
+                                <span class="fs-3 fw-bold text-primary">@_booking.TotalAmount.ToString("N0") đ</span>
+                                <span class="badge bg-success-subtle text-success ms-2">ĐÃ THANH TOÁN</span>
+                            </div>
+
+                            <!-- Simulated QR Code -->
+                            <div class="text-center p-2 bg-light rounded border">
+                                <div class="d-inline-block p-1 bg-white border rounded">
+                                    <!-- QR Visual Representation -->
+                                    <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="100" height="100" fill="white"/>
+                                        <rect x="10" y="10" width="30" height="30" fill="#0f172a"/>
+                                        <rect x="15" y="15" width="20" height="20" fill="white"/>
+                                        <rect x="20" y="20" width="10" height="10" fill="#0f172a"/>
+                                        
+                                        <rect x="60" y="10" width="30" height="30" fill="#0f172a"/>
+                                        <rect x="65" y="15" width="20" height="20" fill="white"/>
+                                        <rect x="70" y="20" width="10" height="10" fill="#0f172a"/>
+
+                                        <rect x="10" y="60" width="30" height="30" fill="#0f172a"/>
+                                        <rect x="15" y="65" width="20" height="20" fill="white"/>
+                                        <rect x="20" y="70" width="10" height="10" fill="#0f172a"/>
+
+                                        <rect x="50" y="50" width="15" height="15" fill="#0f172a"/>
+                                        <rect x="75" y="55" width="15" height="10" fill="#0f172a"/>
+                                        <rect x="50" y="75" width="20" height="15" fill="#0f172a"/>
+                                        <rect x="80" y="80" width="10" height="10" fill="#0f172a"/>
+                                    </svg>
+                                </div>
+                                <div class="font-monospace small text-muted" style="font-size: 0.65rem;">Quét tại cổng soát vé</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Print & Navigation Actions -->
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="btn btn-outline-primary px-4 py-2" @onclick="PrintTicket" style="border-radius: 8px;">
+                        <i class="bi bi-printer me-2"></i>In Vé / Lưu PDF
+                    </button>
+                    <a href="/" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+                        <i class="bi bi-house me-2"></i>Về Trang Chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Reference { get; set; } = string.Empty;
+
+    private Booking? _booking;
+    private Showtime? _showtime;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBookingAsync();
+    }
+
+    private async Task LoadBookingAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _booking = await GetBookingDetailsUseCase.ExecuteByReferenceAsync(Reference);
+            if (_booking != null)
+            {
+                _showtime = await ViewShowtimesUseCase.ExecuteGetByIdAsync(_booking.ShowtimeId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading booking: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task PrintTicket()
+    {
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+}

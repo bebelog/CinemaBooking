@@ -1,0 +1,21 @@
+## Visual Studio / .NET .gitignore
+.vs/
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.dbmdl
+*.jfm
+*.pidb
+*.log
+*.vsidx
+.vscode/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.DotSettings.user
+*.mdf
+*.ldf
