@@ -1,0 +1,323 @@
+﻿@page "/booking/{ShowtimeId:int}"
+@inject IViewShowtimesUseCase ViewShowtimesUseCase
+@inject ICreateBookingUseCase CreateBookingUseCase
+@inject UserSessionService UserSession
+@inject NavigationManager Navigation
+
+<PageTitle>Chọn Ghế &amp; Đặt Vé - CineStar Huế</PageTitle>
+
+<div class="container py-4">
+    <!-- Breadcrumb & Back button -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a href="/" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1" 
+           style="border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #cbd5e1;">
+            <i class="bi bi-arrow-left"></i>
+            <span>Trở Về Danh Sách Phim</span>
+        </a>
+        <div class="student-tag small">
+            <i class="bi bi-check2-circle text-warning me-1"></i>Đề tài 14: Chọn ghế &amp; Đặt vé
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Đang tải thông tin suất chiếu...</span>
+            </div>
+            <p class="mt-2" style="color: #94a3b8;">Đang nạp thông tin phòng chiếu và suất chiếu...</p>
+        </div>
+    }
+    else if (_showtime == null)
+    {
+        <div class="alert alert-danger text-center py-4 bg-opacity-25 border-danger text-white">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-4 text-danger"></i>Suất chiếu này không tồn tại hoặc đã kết thúc.
+            <div class="mt-3">
+                <a href="/" class="btn btn-cinema-gold">Quay lại Trang Chủ</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Showtime Summary Header Card -->
+        <div class="card card-clean p-3 p-md-4 mb-4 shadow-md">
+            <div class="row align-items-center g-3">
+                <div class="col-auto">
+                    <img src="@_showtime.MoviePosterUrl" alt="@_showtime.MovieTitle" 
+                         class="rounded-3 shadow-sm" style="width: 75px; height: 105px; object-fit: cover; border: 1px solid rgba(255,255,255,0.15);">
+                </div>
+                <div class="col">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h3 class="fw-bold text-white mb-0">@_showtime.MovieTitle</h3>
+                        <span class="badge bg-danger fw-bold">@_showtime.MovieAgeRating</span>
+                        <span class="badge bg-warning text-dark fw-bold">@_showtime.ScreenType</span>
+                    </div>
+                    <div class="small mb-2" style="color: #94a3b8;">
+                        <span class="me-3"><i class="bi bi-clock me-1 text-warning"></i>@_showtime.MovieDurationMinutes phút</span>
+                        <span class="me-3"><i class="bi bi-geo-alt me-1 text-warning"></i>@_showtime.AuditoriumName</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 small">
+                        <span class="badge p-2" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155;">
+                            <i class="bi bi-calendar-event me-1 text-warning"></i>Ngày: <strong>@_showtime.StartTime.ToString("dd/MM/yyyy")</strong>
+                        </span>
+                        <span class="badge p-2" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155;">
+                            <i class="bi bi-alarm me-1 text-warning"></i>Giờ: <strong>@_showtime.StartTime.ToString("HH:mm") - @_showtime.EndTime.ToString("HH:mm")</strong>
+                        </span>
+                        <span class="badge p-2" style="background: #1e293b; color: #f8fafc; border: 1px solid #334155;">
+                            <i class="bi bi-cash me-1 text-warning"></i>Giá cơ bản: <strong>@_showtime.BasePrice.ToString("N0") đ</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_bookingError))
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 bg-danger bg-opacity-25 border-danger text-white" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                    <div>
+                        <strong class="d-block">Xảy ra sự cố khi đặt vé!</strong>
+                        <span>@_bookingError</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" @onclick="() => _bookingError = null"></button>
+            </div>
+        }
+
+        <!-- Main Booking Area: Left Seat Map, Right Checkout Sidebar -->
+        <div class="row g-4">
+            <!-- Left: Seat Map -->
+            <div class="col-lg-8">
+                <SeatMapComponent @ref="_seatMapRef"
+                                  ShowtimeId="@ShowtimeId" 
+                                  BasePrice="@_showtime.BasePrice" 
+                                  OnSelectionChanged="HandleSelectionChanged" />
+
+                <!-- Rule 1 Information Card -->
+                <div class="p-3 mt-3 rounded-4" 
+                     style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="bi bi-shield-lock-fill text-success fs-5"></i>
+                        <div class="small">
+                            <strong class="text-success">Quy tắc bảo đảm giao dịch (Luật 1 - Tranh chấp ghế):</strong>
+                            <div style="color: #94a3b8;" class="mt-1">
+                                Ghế đang chọn được giữ tạm thời cho phiên của bạn trong 10 phút. Trường hợp có 2 khách hàng đồng thời gửi yêu cầu thanh toán cùng 1 vị trí ghế, CSDL và hệ thống Transaction Dapper sẽ tự động ưu tiên cho phiên ghi nhận trước và báo lỗi an toàn cho phiên sau mà không xảy ra tranh chấp dữ liệu.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Order Summary & Customer Info Form -->
+            <div class="col-lg-4">
+                <div class="card card-clean p-4 shadow-lg sticky-top" style="top: 90px;">
+                    <h5 class="fw-bold text-white pb-3 mb-3 d-flex align-items-center gap-2" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                        <i class="bi bi-receipt-cutoff text-warning"></i>
+                        <span>Tóm Tắt Đơn Vé</span>
+                    </h5>
+
+                    <!-- Selected Seats Breakdown -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-2" style="color: #94a3b8;">
+                            <span>Phim:</span>
+                            <span class="fw-semibold text-white text-truncate ms-2" style="max-width: 170px;">@_showtime.MovieTitle</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-2" style="color: #94a3b8;">
+                            <span>Suất chiếu:</span>
+                            <span class="fw-bold text-warning">@_showtime.StartTime.ToString("HH:mm - dd/MM")</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-2" style="color: #94a3b8;">
+                            <span>Phòng chiếu:</span>
+                            <span class="text-white">@_showtime.AuditoriumName</span>
+                        </div>
+
+                        <hr class="my-2" style="border-color: rgba(255,255,255,0.08);">
+
+                        <div class="small mb-2">
+                            <span style="color: #94a3b8;">Ghế đã chọn:</span>
+                            @if (_selectedSeats.Count == 0)
+                            {
+                                <div class="text-center p-3 my-2 rounded-3" style="background: #1e293b; color: #94a3b8; border: 1px dashed #334155;">
+                                    <i class="bi bi-cursor-fill me-1"></i>Vui lòng nhấp chọn ghế trên sơ đồ
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="my-2 p-2 rounded-3" style="background: #1e293b; border: 1px solid #334155;">
+                                    @foreach (var s in _selectedSeats)
+                                    {
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span>
+                                                <strong class="text-warning">@s.SeatDisplayName</strong> 
+                                                <small style="color: #94a3b8;">(@s.SeatType)</small>
+                                            </span>
+                                            <span class="fw-bold text-white">@s.FinalPrice.ToString("N0") đ</span>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Grand Total Box -->
+                        <div class="d-flex justify-content-between align-items-center py-3 px-3 rounded-3 mb-3" 
+                             style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <span class="fw-bold text-warning">TỔNG TIỀN:</span>
+                            <span class="fs-4 fw-extrabold text-warning" style="font-weight: 800;">
+                                @_totalAmount.ToString("N0") đ
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information Form -->
+                    <EditForm Model="@_bookingModel" OnValidSubmit="HandleSubmitBooking">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1" style="color: #cbd5e1;">Họ &amp; Tên Người Đặt *</label>
+                            <input type="text" class="form-control form-control-sm" 
+                                   placeholder="Ví dụ: Nguyễn Văn An" 
+                                   @bind="_bookingModel.CustomerName" required />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1" style="color: #cbd5e1;">Số Điện Thoại *</label>
+                            <input type="tel" class="form-control form-control-sm" 
+                                   placeholder="0905123456" 
+                                   @bind="_bookingModel.CustomerPhone" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold mb-1" style="color: #cbd5e1;">Email Nhận Vé Điện Tử *</label>
+                            <input type="email" class="form-control form-control-sm" 
+                                   placeholder="nguyenvanan@gmail.com" 
+                                   @bind="_bookingModel.CustomerEmail" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold mb-1" style="color: #cbd5e1;">Phương thức thanh toán</label>
+                            <select class="form-select form-select-sm" @bind="_bookingModel.PaymentMethod">
+                                <option value="VNPAY-QR">VNPAY-QR (Quét mã thanh toán tức thì)</option>
+                                <option value="ATM / Thẻ Nội Địa">Thẻ ATM / Tài Khoản Ngân Hàng</option>
+                                <option value="Ví MoMo">Ví Điện Tử MoMo</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                class="btn btn-cinema-gold w-100 py-3 fw-bold" 
+                                disabled="@(_selectedSeats.Count == 0 || _isSubmitting)">
+                            @if (_isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2 text-dark"></span>
+                                <span>Đang xử lý đặt vé...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <span>Xác Nhận &amp; Đặt Vé (@_totalAmount.ToString("N0") đ)</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int ShowtimeId { get; set; }
+
+    private SeatMapComponent? _seatMapRef;
+    private Showtime? _showtime;
+    private List<SeatDto> _selectedSeats = new();
+    private decimal _totalAmount = 0;
+    private bool _isLoading = true;
+    private bool _isSubmitting = false;
+    private string? _bookingError;
+
+    private Booking _bookingModel = new()
+    {
+        CustomerName = "",
+        CustomerEmail = "",
+        CustomerPhone = "",
+        PaymentMethod = "VNPAY-QR"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadShowtimeAsync();
+    }
+
+    private async Task LoadShowtimeAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _showtime = await ViewShowtimesUseCase.ExecuteGetByIdAsync(ShowtimeId);
+            if (_showtime != null)
+            {
+                _bookingModel.ShowtimeId = ShowtimeId;
+            }
+        }
+        catch (Exception ex)
+        {
+            _bookingError = $"Lỗi khi tải thông tin suất chiếu: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void HandleSelectionChanged(List<SeatDto> selectedList)
+    {
+        _selectedSeats = selectedList;
+        _totalAmount = selectedList.Sum(s => s.FinalPrice);
+        StateHasChanged();
+    }
+
+    private async Task HandleSubmitBooking()
+    {
+        if (!_selectedSeats.Any())
+        {
+            _bookingError = "Vui lòng chọn ít nhất 1 ghế trước khi thanh toán!";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_bookingModel.CustomerName) || 
+            string.IsNullOrWhiteSpace(_bookingModel.CustomerPhone) || 
+            string.IsNullOrWhiteSpace(_bookingModel.CustomerEmail))
+        {
+            _bookingError = "Vui lòng điền đầy đủ họ tên, số điện thoại và email!";
+            return;
+        }
+
+        _isSubmitting = true;
+        _bookingError = null;
+
+        try
+        {
+            var seatIds = _selectedSeats.Select(s => s.SeatId).ToList();
+            string bookingRef = await CreateBookingUseCase.ExecuteAsync(_bookingModel, seatIds, UserSession.SessionId);
+
+            Navigation.NavigateTo($"/confirmation/{bookingRef}");
+        }
+        catch (SeatConflictException ex)
+        {
+            _bookingError = ex.Message;
+            if (_seatMapRef != null)
+            {
+                await _seatMapRef.LoadSeatsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _bookingError = $"Đã xảy ra lỗi trong quá trình đặt vé: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}
