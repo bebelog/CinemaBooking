@@ -1,0 +1,236 @@
+﻿@using Cinema.UseCases.AI
+@using Cinema.UseCases.DTOs
+@inject ISemanticMovieSearchUseCase SemanticSearchUseCase
+@inject NavigationManager Navigation
+
+<div class="ai-assistant-card shadow-sm border border-primary-subtle rounded-4 p-4 mb-5" 
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%); color: #fff;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="ai-icon-pulse rounded-circle d-flex align-items-center justify-content-center" 
+                 style="width: 52px; height: 52px; background: linear-gradient(135deg, #ec4899, #8b5cf6); box-shadow: 0 0 20px rgba(236,72,153,0.5);">
+                <i class="bi bi-stars fs-3 text-white"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h4 class="mb-0 fw-bold" style="letter-spacing: -0.5px;">Trợ Lý AI Điện Ảnh (Semantic Search)</h4>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small fw-bold">MỞ RỘNG AI ★★★</span>
+                </div>
+                <p class="text-slate-300 small mb-0 mt-1" style="color: #cbd5e1;">
+                    Tìm phim theo mô tả tự nhiên ("phim nhẹ nhàng cho gia đình", "bom tấn kịch tính tối nay") &amp; gợi ý suất chiếu thông minh
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Input Form -->
+    <div class="position-relative mb-3">
+        <div class="input-group input-group-lg shadow-sm">
+            <span class="input-group-text bg-slate-900 border-0 text-primary ps-3" style="background: rgba(15, 23, 42, 0.8);">
+                <i class="bi bi-chat-heart text-info fs-5"></i>
+            </span>
+            <input type="text" class="form-control border-0 py-3" 
+                   style="background: rgba(15, 23, 42, 0.8); color: #f8fafc; font-size: 1.05rem;"
+                   placeholder="Nhập mong muốn của bạn (Ví dụ: phim nhẹ nhàng cho gia đình tối nay, hoạt hình vui vẻ...)"
+                   @bind="_query" 
+                   @bind:event="oninput"
+                   @onkeydown="HandleKeyDown" />
+            <button class="btn btn-primary px-4 fw-bold d-flex align-items-center gap-2" 
+                    type="button" 
+                    style="background: linear-gradient(135deg, #6366f1, #a855f7); border: none;"
+                    disabled="@_isSearching"
+                    @onclick="ExecuteSearch">
+                @if (_isSearching)
+                {
+                    <span class="spinner-border spinner-border-sm"></span>
+                    <span>AI đang phân tích...</span>
+                }
+                else
+                {
+                    <i class="bi bi-search-heart"></i>
+                    <span>Hỏi AI</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Prompt Chips -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="small text-slate-400" style="color: #94a3b8;"><i class="bi bi-lightbulb me-1"></i>Gợi ý mẫu:</span>
+        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap" 
+                style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);"
+                @onclick='() => SetPrompt("phim nhẹ nhàng cho gia đình")'>
+            🍿 Phim nhẹ nhàng cho gia đình
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap" 
+                style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);"
+                @onclick='() => SetPrompt("bom tấn hành động kịch tính tối nay")'>
+            💥 Bom tấn hành động tối nay
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap" 
+                style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);"
+                @onclick='() => SetPrompt("phim tâm lý tình cảm sâu lắng")'>
+            ❤️ Phim tâm lý tình cảm
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 text-nowrap" 
+                style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);"
+                @onclick='() => SetPrompt("suất chiếu muộn sau 21h đêm")'>
+            🌙 Suất chiếu muộn sau 21h
+        </button>
+    </div>
+
+    <!-- Results Section -->
+    @if (_hasSearched)
+    {
+        <div class="mt-4 pt-3 border-top border-white border-opacity-10">
+            @if (_recommendations.Count == 0)
+            {
+                <div class="alert alert-info bg-opacity-25 border-info text-white mb-0 rounded-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    AI chưa tìm thấy phim hoàn toàn khớp với câu lệnh này. Bạn hãy thử mô tả bằng các từ khóa như "gia đình", "hành động", "tình cảm" xem sao nhé!
+                </div>
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
+                        <i class="bi bi-magic"></i>
+                        <span>AI Gợi Ý @(_recommendations.Count) Phim &amp; Suất Chiếu Phù Hợp Nhất:</span>
+                    </h5>
+                    <button class="btn btn-sm btn-link text-white-50 text-decoration-none" @onclick="ResetSearch">
+                        <i class="bi bi-x-circle me-1"></i>Thu gọn
+                    </button>
+                </div>
+
+                <div class="row g-3">
+                    @foreach (var rec in _recommendations)
+                    {
+                        <div class="col-12 col-lg-6">
+                            <div class="card h-100 border-0 rounded-4 overflow-hidden" 
+                                 style="background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(8px); color: #fff;">
+                                <div class="row g-0 h-100">
+                                    <div class="col-4 col-sm-3 position-relative">
+                                        <img src="@rec.Movie.PosterUrl" alt="@rec.Movie.Title" 
+                                             class="img-fluid w-100 h-100 object-fit-cover" 
+                                             style="min-height: 180px;" />
+                                        <div class="position-absolute top-0 start-0 m-2">
+                                            <span class="badge @GetBadgeClass(rec.Movie.AgeRating) fw-bold shadow-sm">
+                                                @rec.Movie.AgeRating
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-8 col-sm-9 p-3 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                                <h5 class="fw-bold mb-0 text-white" style="font-size: 1.1rem;">@rec.Movie.Title</h5>
+                                                <span class="badge bg-success bg-opacity-75 text-white border border-success-subtle text-nowrap">
+                                                    Độ khớp: @rec.RelevanceScore%
+                                                </span>
+                                            </div>
+                                            <div class="text-white-50 small mb-2">
+                                                <i class="bi bi-film me-1"></i>@rec.Movie.Genre | @rec.Movie.DurationMinutes phút
+                                            </div>
+                                            
+                                            <!-- AI reasoning bubble -->
+                                            <div class="p-2 rounded-3 mb-2 small" 
+                                                 style="background: rgba(99, 102, 241, 0.15); border-left: 3px solid #818cf8; color: #e2e8f0;">
+                                                <i class="bi bi-robot me-1 text-info"></i>
+                                                <strong>Phân tích AI:</strong> @rec.MatchReason
+                                            </div>
+                                        </div>
+
+                                        <!-- Suggested Showtimes -->
+                                        <div>
+                                            <div class="small fw-bold text-warning mb-1 d-flex align-items-center gap-1">
+                                                <i class="bi bi-clock-history"></i>
+                                                <span>Suất chiếu đề xuất:</span>
+                                            </div>
+                                            @if (rec.SuggestedShowtimes.Any())
+                                            {
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach (var st in rec.SuggestedShowtimes.Take(4))
+                                                    {
+                                                        <a href="/booking/@st.ShowtimeId" 
+                                                           class="btn btn-sm btn-outline-warning fw-bold py-1 px-2 rounded-pill d-flex align-items-center gap-1 text-decoration-none">
+                                                            <i class="bi bi-ticket-perforated"></i>
+                                                            <span>@st.StartTime.ToString("HH:mm")</span>
+                                                            <small class="text-white-50">(@st.BasePrice.ToString("N0")đ)</small>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-white-50 small fst-italic">Hôm nay hiện chưa có thêm suất chiếu cho phim này.</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _query = "";
+    private bool _isSearching = false;
+    private bool _hasSearched = false;
+    private List<AiMovieRecommendationDto> _recommendations = new();
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ExecuteSearch();
+        }
+    }
+
+    private async Task SetPrompt(string prompt)
+    {
+        _query = prompt;
+        await ExecuteSearch();
+    }
+
+    private async Task ExecuteSearch()
+    {
+        if (string.IsNullOrWhiteSpace(_query)) return;
+
+        _isSearching = true;
+        _hasSearched = true;
+        StateHasChanged();
+
+        try
+        {
+            // Trễ nhẹ 300ms để tạo cảm giác suy luận thông minh
+            await Task.Delay(300);
+            _recommendations = await SemanticSearchUseCase.ExecuteAsync(_query);
+        }
+        finally
+        {
+            _isSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ResetSearch()
+    {
+        _hasSearched = false;
+        _recommendations.Clear();
+        _query = "";
+        StateHasChanged();
+    }
+
+    private string GetBadgeClass(string? rating) => rating?.ToUpper() switch
+    {
+        "P" => "bg-success",
+        "K" => "bg-primary",
+        "T13" => "bg-warning text-dark",
+        "T16" => "bg-danger",
+        "T18" => "bg-dark text-danger border border-danger",
+        _ => "bg-secondary"
+    };
+}

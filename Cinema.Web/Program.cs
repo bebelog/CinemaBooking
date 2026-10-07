@@ -1,6 +1,7 @@
 ﻿using Cinema.DataStore.SQL.Dapper;
 using Cinema.DataStore.SQL.Dapper.Repositories;
 using Cinema.StateStore.DI;
+using Cinema.UseCases.AI;
 using Cinema.UseCases.Auditoriums;
 using Cinema.UseCases.Bookings;
 using Cinema.UseCases.Movies;
@@ -50,6 +51,7 @@ builder.Services.AddTransient<ICreateBookingUseCase, CreateBookingUseCase>();
 builder.Services.AddTransient<IGetBookingDetailsUseCase, GetBookingDetailsUseCase>();
 builder.Services.AddTransient<IViewRecentBookingsUseCase, ViewRecentBookingsUseCase>();
 builder.Services.AddTransient<IViewOccupancyReportUseCase, ViewOccupancyReportUseCase>();
+builder.Services.AddTransient<ISemanticMovieSearchUseCase, SemanticMovieSearchUseCase>();
 
 // 5. Auth & Session
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

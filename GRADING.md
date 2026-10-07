@@ -44,3 +44,16 @@
 | **K4. Unit Tests** | 15 | 15 | 100% | 6 tests PASS, 5 tests cho 2 luật, Moq repository |
 | **K5. Chất lượng mã & Trình bày** | 15 | 15 | 100% | 0 Warning, 0 Error, cấu trúc chuẩn, tài liệu chi tiết |
 | **TỔNG CỘNG** | **100** | **100** | **100%** | **Xuất sắc (A+)** |
+
+---
+
+## TÍNH NĂNG MỞ RỘNG (BONUS ĐỀ TÀI ★★★): AI SEMANTIC SEARCH & TRỢ LÝ GỢI Ý SUẤT CHIẾU
+
+> **Yêu cầu mở rộng trong đề tài**: *"Mở rộng AI Semantic Search phim theo mô tả ('phim nhẹ nhàng cho gia đình'); trợ lý gợi ý suất chiếu"*.
+
+| Mục mở rộng | Tình trạng | Đường dẫn file bằng chứng | Chi tiết cài đặt & Khả năng hoạt động |
+| :--- | :---: | :--- | :--- |
+| **AI Semantic Search theo mô tả tự nhiên** | **HOÀN THÀNH 100%** | `Cinema.UseCases/AI/ISemanticMovieSearchUseCase.cs`<br>`Cinema.UseCases/AI/SemanticMovieSearchUseCase.cs`<br>`Cinema.UseCases/DTOs/AiMovieRecommendationDto.cs` | • Nhận câu hỏi ngôn ngữ tự nhiên (vd: *"phim nhẹ nhàng cho gia đình"*, *"bom tấn hành động kịch tính"*).<br>• Phân tích ý định (Intent), độ tuổi (P/K/T13/T18), thể loại và mô tả để tính điểm tương đồng ngữ nghĩa (Relevance Score %).<br>• Trả về lý do phân tích chi tiết (MatchReason) cho từng bộ phim. |
+| **Trợ lý AI gợi ý suất chiếu thông minh** | **HOÀN THÀNH 100%** | `Cinema.UseCases/AI/SemanticMovieSearchUseCase.cs`<br>`Cinema.Web/Components/Controls/AiMovieAssistant.razor` | • Tự động nhận diện khung thời gian trong câu hỏi (*"tối nay"*, *"chiều"*, *"đêm sau 21h"*).<br>• Lọc các suất chiếu phù hợp thời gian, hiển thị trực tiếp nút chọn suất chiếu dẫn thẳng vào trang đặt vé sơ đồ ghế. |
+| **Giao diện Trợ lý AI trên Web** | **HOÀN THÀNH 100%** | `Cinema.Web/Components/Controls/AiMovieAssistant.razor`<br>`Cinema.Web/Components/Pages/Home.razor` | • Thiết kế Glassmorphism hiện đại ngay trang chủ với các gợi ý mẫu (Prompt Chips).<br>• Trực quan hóa độ phù hợp %, huy hiệu độ tuổi, lý do AI đề xuất và nút đặt vé nhanh. |
+| **Unit Test cho AI Semantic Search** | **PASS 100%** | `Cinema.UnitTests/AiSemanticSearchTests.cs` | • 3/3 Tests chuyên biệt kiểm thử tìm kiếm gia đình (Kung Fu Panda 4), bom tấn hành động (Godzilla x Kong), và lọc suất chiếu buổi tối. |
