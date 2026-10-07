@@ -327,7 +327,7 @@
                 var remaining = (int)Math.Max(0, (_holdExpiryUtc.Value - DateTime.UtcNow).TotalSeconds);
                 _remainingSeconds = remaining;
                 var ts = TimeSpan.FromSeconds(remaining);
-                _countdownText = ts.ToString(@"mm:ss");
+                _countdownText = $"{remaining / 60:D2}:{remaining % 60:D2}";
 
                 if (remaining <= 0)
                 {
