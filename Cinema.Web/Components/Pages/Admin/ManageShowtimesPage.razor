@@ -1,0 +1,310 @@
+﻿@page "/admin/showtimes"
+@attribute [Authorize(Roles = "Admin")]
+@inject IViewMoviesUseCase ViewMoviesUseCase
+@inject IViewAuditoriumsUseCase ViewAuditoriumsUseCase
+@inject IViewShowtimesUseCase ViewShowtimesUseCase
+@inject ICreateShowtimeUseCase CreateShowtimeUseCase
+@inject IDeleteShowtimeUseCase DeleteShowtimeUseCase
+
+<PageTitle>Quản Lý Suất Chiếu - Admin CineStar</PageTitle>
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+        <div>
+            <h2 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3-range text-warning"></i>
+                <span>Quản Lý Suất Chiếu</span>
+            </h2>
+            <p class="text-muted mb-0">Thêm mới, theo dõi và sắp xếp lịch chiếu tại các phòng chiếu CineStar Huế.</p>
+        </div>
+        <div class="student-tag">
+            <i class="bi bi-shield-check text-warning me-1"></i>Khu vực Quản trị viên
+        </div>
+    </div>
+
+    <!-- Rule 2 Explanatory Alert -->
+    <div class="card p-3 mb-4 rounded-3" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.35); color: #e0f2fe;">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-info-circle-fill text-info fs-4 mt-1"></i>
+            <div>
+                <strong class="text-info d-block fs-6 mb-1">Quy tắc nghiệp vụ LUẬT 2: Suất chiếu cùng phòng không được chồng giờ</strong>
+                <span class="small" style="color: #cbd5e1;">
+                    Hệ thống tự động tính: <code>EndTime = StartTime + Thời lượng phim + 15 phút dọn dẹp phòng chiếu</code>. 
+                    Nếu bạn xếp một suất chiếu bị trùng thời gian với suất chiếu sẵn có trong cùng phòng, quy tắc tên <strong>ShowtimeScheduleRule</strong> sẽ ném ngoại lệ <code>ShowtimeOverlapException</code> và từ chối ghi nhận để bảo đảm chất lượng vận hành rạp.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@_successMessage
+            <button type="button" class="btn-close" @onclick="() => _successMessage = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Thao tác thất bại:</strong> @_errorMessage
+            <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Form Add Showtime -->
+        <div class="col-lg-4">
+            <div class="card card-clean p-4 shadow-sm">
+                <h5 class="fw-bold text-white pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <i class="bi bi-plus-circle text-warning me-2"></i>Thêm Suất Chiếu Mới
+                </h5>
+
+                <form @onsubmit="HandleCreateShowtime" @onsubmit:preventDefault>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Phim Chiếu *</label>
+                        <select class="form-select form-select-sm" @bind="_newShowtime.MovieId" required>
+                            <option value="0">-- Chọn phim chiếu --</option>
+                            @foreach (var m in _movies)
+                            {
+                                <option value="@m.MovieId">@m.Title (@m.DurationMinutes phút)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Phòng Chiếu *</label>
+                        <select class="form-select form-select-sm" @bind="_newShowtime.AuditoriumId" required>
+                            <option value="0">-- Chọn phòng chiếu --</option>
+                            @foreach (var a in _auditoriums)
+                            {
+                                <option value="@a.AuditoriumId">@a.Name (@a.ScreenType)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Thời Gian Bắt Đầu *</label>
+                        <input type="datetime-local" class="form-control form-control-sm" 
+                               value="@_startTimeString" 
+                               @onchange="OnStartTimeChanged" required />
+                        <small class="text-muted d-block mt-1">
+                            Giờ chiếu kế tiếp cần cách tối thiểu 15 phút dọn phòng.
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Giá Vé Cơ Bản (VNĐ) *</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               @bind="_newShowtime.BasePrice" min="10000" step="5000" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2 text-dark"></span>
+                            <span>Đang kiểm tra trùng lịch...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-save me-1"></i>
+                            <span>Lưu Suất Chiếu</span>
+                        }
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table Showtimes List -->
+        <div class="col-lg-8">
+            <div class="card card-clean p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="bi bi-list-check text-warning me-2"></i>Toàn Bộ Suất Chiếu
+                    </h5>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="LoadDataAsync">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+                    </button>
+                </div>
+
+                @if (_isLoading)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning" role="status"></div>
+                    </div>
+                }
+                else if (!_showtimes.Any())
+                {
+                    <div class="alert alert-dark text-center py-4 border text-muted">
+                        Hiện tại chưa có suất chiếu nào được lên lịch.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Phim</th>
+                                    <th>Phòng</th>
+                                    <th>Bắt Đầu</th>
+                                    <th>Kết Thúc (+15m)</th>
+                                    <th>Giá Cơ Bản</th>
+                                    <th class="text-end">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var st in _showtimes.OrderByDescending(s => s.StartTime))
+                                {
+                                    <tr>
+                                        <td class="font-monospace">#@st.ShowtimeId</td>
+                                        <td>
+                                            <strong class="text-white fs-6">@st.MovieTitle</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.MovieDurationMinutes phút</div>
+                                        </td>
+                                        <td>
+                                            <div class="text-white fw-semibold">@st.AuditoriumName</div>
+                                            <span class="badge badge-cinema-screen">@st.ScreenType</span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-warning">@st.StartTime.ToString("HH:mm")</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.StartTime.ToString("dd/MM/yyyy")</div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-white">@st.EndTime.ToString("HH:mm")</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.EndTime.ToString("dd/MM/yyyy")</div>
+                                        </td>
+                                        <td class="fw-bold text-warning fs-6">
+                                            @st.BasePrice.ToString("N0") đ
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-outline-danger btn-sm p-1 px-2" 
+                                                    title="Xóa suất chiếu"
+                                                    @onclick="() => HandleDeleteShowtime(st.ShowtimeId)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Movie> _movies = new();
+    private List<Auditorium> _auditoriums = new();
+    private List<Showtime> _showtimes = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting = false;
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    private Showtime _newShowtime = new()
+    {
+        MovieId = 0,
+        AuditoriumId = 0,
+        StartTime = DateTime.Today.AddHours(21),
+        BasePrice = 85000
+    };
+
+    private string _startTimeString = DateTime.Today.AddHours(21).ToString("yyyy-MM-ddTHH:mm");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private void OnStartTimeChanged(ChangeEventArgs e)
+    {
+        _startTimeString = e.Value?.ToString() ?? "";
+        if (DateTime.TryParse(_startTimeString, out var dt))
+        {
+            _newShowtime.StartTime = dt;
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            _movies = (await ViewMoviesUseCase.ExecuteAsync(activeOnly: true)).ToList();
+            _auditoriums = (await ViewAuditoriumsUseCase.ExecuteAsync()).ToList();
+            _showtimes = (await ViewShowtimesUseCase.ExecuteAllAsync()).ToList();
+
+            if (_newShowtime.MovieId == 0 && _movies.Any()) _newShowtime.MovieId = _movies.First().MovieId;
+            if (_newShowtime.AuditoriumId == 0 && _auditoriums.Any()) _newShowtime.AuditoriumId = _auditoriums.First().AuditoriumId;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Không thể tải dữ liệu: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleCreateShowtime()
+    {
+        if (_newShowtime.MovieId <= 0 || _newShowtime.AuditoriumId <= 0)
+        {
+            _errorMessage = "Vui lòng chọn đầy đủ Phim và Phòng chiếu!";
+            return;
+        }
+
+        _isSubmitting = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            int newId = await CreateShowtimeUseCase.ExecuteAsync(_newShowtime);
+            _successMessage = $"Thêm thành công suất chiếu mới ID #{newId} (Áp dụng đúng LUẬT 2: Giờ chiếu không bị chồng giờ)!";
+            await LoadDataAsync();
+        }
+        catch (ShowtimeOverlapException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Lỗi hệ thống: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task HandleDeleteShowtime(int showtimeId)
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        try
+        {
+            bool success = await DeleteShowtimeUseCase.ExecuteAsync(showtimeId);
+            if (success)
+            {
+                _successMessage = $"Đã xóa suất chiếu #{showtimeId} thành công.";
+                await LoadDataAsync();
+            }
+            else
+            {
+                _errorMessage = $"Không thể xóa suất chiếu #{showtimeId}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Không thể xóa suất chiếu này do đã có vé được bán (ràng buộc khóa ngoại Foreign Key): {ex.Message}";
+        }
+    }
+}

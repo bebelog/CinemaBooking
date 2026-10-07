@@ -1,0 +1,397 @@
+﻿@page "/admin/movies"
+@attribute [Authorize(Roles = "Admin")]
+@inject IViewMoviesUseCase ViewMoviesUseCase
+@inject ICreateMovieUseCase CreateMovieUseCase
+@inject IUpdateMovieUseCase UpdateMovieUseCase
+@inject IDeleteMovieUseCase DeleteMovieUseCase
+
+<PageTitle>Quản Lý Phim - Admin CineStar</PageTitle>
+
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
+        <div>
+            <h2 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-film text-warning"></i>
+                <span>Quản Lý Phim &amp; Thêm / Sửa Phim</span>
+            </h2>
+            <p class="text-muted mb-0">Thêm phim mới, chỉnh sửa thông tin hoặc xóa phim khỏi danh mục chiếu rạp.</p>
+        </div>
+        <div class="student-tag">
+            <i class="bi bi-shield-check text-warning me-1"></i>Khu vực Quản trị viên
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@_successMessage
+            <button type="button" class="btn-close" @onclick="() => _successMessage = null"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@_errorMessage
+            <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Form Add/Edit Movie -->
+        <div class="col-lg-4">
+            <div class="card card-clean p-4 shadow-sm">
+                <h5 class="fw-bold text-white pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <i class="bi @(_isEditing ? "bi-pencil-square text-warning" : "bi-plus-circle text-warning") me-2"></i>
+                    @(_isEditing ? "Chỉnh Sửa Phim" : "Thêm Phim Chiếu Mới")
+                </h5>
+
+                <form @onsubmit="HandleSaveMovie" @onsubmit:preventDefault>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Tên Phim *</label>
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="VD: Avatar 3: Lửa & Tro" 
+                               @bind="_currentMovie.Title" required />
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Thời Lượng (Phút) *</label>
+                            <input type="number" class="form-control form-control-sm" 
+                                   @bind="_currentMovie.DurationMinutes" min="30" max="300" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Độ Tuổi *</label>
+                            <select class="form-select form-select-sm" @bind="_currentMovie.AgeRating">
+                                <option value="P">P (Phổ biến)</option>
+                                <option value="K">K (Khán giả dưới 13 tuổi có kèm người lớn)</option>
+                                <option value="T13">T13 (Từ 13 tuổi trở lên)</option>
+                                <option value="T16">T16 (Từ 16 tuổi trở lên)</option>
+                                <option value="T18">T18 (Từ 18 tuổi trở lên)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Thể Loại *</label>
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="VD: Hành động, Viễn tưởng" 
+                               @bind="_currentMovie.Genre" required />
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Đạo Diễn *</label>
+                            <input type="text" class="form-control form-control-sm" 
+                                   placeholder="VD: James Cameron" 
+                                   @bind="_currentMovie.Director" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Ngày Công Chiếu *</label>
+                            <input type="date" class="form-control form-control-sm" 
+                                   value="@_releaseDateString" 
+                                   @onchange="OnReleaseDateChanged" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Diễn Viên Chính *</label>
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="VD: Sam Worthington, Zoe Saldana" 
+                               @bind="_currentMovie.Cast" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Đường Dẫn Poster (URL Ảnh) *</label>
+                        <input type="url" class="form-control form-control-sm" 
+                               placeholder="https://..." 
+                               @bind="_currentMovie.PosterUrl" required />
+                        <div class="d-flex gap-1 mt-1">
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
+                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80"'>
+                                Mẫu 1
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
+                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80"'>
+                                Mẫu 2
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
+                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=600&auto=format&fit=crop&q=80"'>
+                                Mẫu 3
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Tóm Tắt Nội Dung Phim *</label>
+                        <textarea class="form-control form-control-sm" rows="3" 
+                                  placeholder="Mô tả tóm tắt nội dung hấp dẫn của bộ phim..." 
+                                  @bind="_currentMovie.Description" required></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" 
+                                class="btn btn-cinema-gold flex-grow-1 py-2 fw-bold" 
+                                disabled="@_isSubmitting">
+                            @if (_isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2 text-dark"></span>
+                                <span>Đang lưu...</span>
+                            }
+                            else
+                            {
+                                <i class="bi @(_isEditing ? "bi-check2-circle" : "bi-save") me-1"></i>
+                                <span>@(_isEditing ? "Cập Nhật Phim" : "Lưu Phim Mới Vào Rạp")</span>
+                            }
+                        </button>
+
+                        @if (_isEditing)
+                        {
+                            <button type="button" class="btn btn-outline-secondary btn-sm px-3" @onclick="CancelEdit">
+                                Hủy
+                            </button>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table Movies List -->
+        <div class="col-lg-8">
+            <div class="card card-clean p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="bi bi-collection-play text-warning me-2"></i>Danh Sách Phim Trong Rạp (@_movies.Count phim)
+                    </h5>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="LoadMoviesAsync">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
+                    </button>
+                </div>
+
+                @if (_isLoading)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning" role="status"></div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle small mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Poster</th>
+                                    <th>Tên Phim</th>
+                                    <th>Thời Lượng</th>
+                                    <th>Độ Tuổi</th>
+                                    <th>Thể Loại</th>
+                                    <th class="text-end">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in _movies)
+                                {
+                                    <tr class="@(_isEditing && _currentMovie.MovieId == m.MovieId ? "table-active" : "")">
+                                        <td style="width: 55px;">
+                                            <img src="@m.PosterUrl" alt="@m.Title" 
+                                                 class="rounded border" style="width: 45px; height: 60px; object-fit: cover;" />
+                                        </td>
+                                        <td>
+                                            <strong class="text-white fs-6">@m.Title</strong>
+                                            <div class="small" style="color: #94a3b8;">ĐD: @m.Director</div>
+                                        </td>
+                                        <td style="color: #cbd5e1;">@m.DurationMinutes phút</td>
+                                        <td>
+                                            <span class="badge" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);">
+                                                @m.AgeRating
+                                            </span>
+                                        </td>
+                                        <td style="color: #cbd5e1;">@m.Genre</td>
+                                        <td class="text-end">
+                                            <div class="btn-group">
+                                                <button class="btn btn-outline-info btn-sm p-1 px-2" 
+                                                        title="Chỉnh sửa phim này"
+                                                        @onclick="() => StartEditMovie(m)">
+                                                    <i class="bi bi-pencil-square"></i> Sửa
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm p-1 px-2" 
+                                                        title="Xóa phim"
+                                                        @onclick="() => HandleDeleteMovie(m.MovieId)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Movie> _movies = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting = false;
+    private bool _isEditing = false;
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    private Movie _currentMovie = new()
+    {
+        Title = "",
+        Director = "",
+        Cast = "",
+        Genre = "Hành động, Phiêu lưu",
+        DurationMinutes = 120,
+        AgeRating = "T16",
+        ReleaseDate = DateTime.Today,
+        PosterUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80",
+        Description = ""
+    };
+
+    private string _releaseDateString = DateTime.Today.ToString("yyyy-MM-dd");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMoviesAsync();
+    }
+
+    private void OnReleaseDateChanged(ChangeEventArgs e)
+    {
+        _releaseDateString = e.Value?.ToString() ?? "";
+        if (DateTime.TryParse(_releaseDateString, out var dt))
+        {
+            _currentMovie.ReleaseDate = dt;
+        }
+    }
+
+    private async Task LoadMoviesAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var res = await ViewMoviesUseCase.ExecuteAsync(activeOnly: false);
+            _movies = res.ToList();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Không thể tải danh sách phim: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void StartEditMovie(Movie movie)
+    {
+        _isEditing = true;
+        _currentMovie = new Movie
+        {
+            MovieId = movie.MovieId,
+            Title = movie.Title,
+            Director = movie.Director,
+            Cast = movie.Cast,
+            Genre = movie.Genre,
+            DurationMinutes = movie.DurationMinutes,
+            AgeRating = movie.AgeRating,
+            ReleaseDate = movie.ReleaseDate,
+            PosterUrl = movie.PosterUrl,
+            Description = movie.Description,
+            IsActive = movie.IsActive
+        };
+        _releaseDateString = movie.ReleaseDate.ToString("yyyy-MM-dd");
+        _errorMessage = null;
+        _successMessage = null;
+    }
+
+    private void CancelEdit()
+    {
+        _isEditing = false;
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
+        _currentMovie = new()
+        {
+            Title = "",
+            Director = "",
+            Cast = "",
+            Genre = "Hành động, Phiêu lưu",
+            DurationMinutes = 120,
+            AgeRating = "T16",
+            ReleaseDate = DateTime.Today,
+            PosterUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80",
+            Description = ""
+        };
+        _releaseDateString = DateTime.Today.ToString("yyyy-MM-dd");
+    }
+
+    private async Task HandleSaveMovie()
+    {
+        _isSubmitting = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            if (_isEditing)
+            {
+                await UpdateMovieUseCase.ExecuteAsync(_currentMovie);
+                _successMessage = $"Cập nhật thành công thông tin phim '{_currentMovie.Title}'!";
+                _isEditing = false;
+                ResetForm();
+            }
+            else
+            {
+                int newId = await CreateMovieUseCase.ExecuteAsync(_currentMovie);
+                _successMessage = $"Thêm thành công phim '{_currentMovie.Title}' (ID #{newId}) vào hệ thống rạp!";
+                ResetForm();
+            }
+
+            await LoadMoviesAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task HandleDeleteMovie(int movieId)
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        try
+        {
+            bool success = await DeleteMovieUseCase.ExecuteAsync(movieId);
+            if (success)
+            {
+                _successMessage = $"Đã xóa phim #{movieId} thành công.";
+                if (_isEditing && _currentMovie.MovieId == movieId)
+                {
+                    CancelEdit();
+                }
+                await LoadMoviesAsync();
+            }
+            else
+            {
+                _errorMessage = $"Không thể xóa phim #{movieId}.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Không thể xóa phim này do đã có suất chiếu hoặc vé liên kết (ràng buộc khóa ngoại FK): {ex.Message}";
+        }
+    }
+}
