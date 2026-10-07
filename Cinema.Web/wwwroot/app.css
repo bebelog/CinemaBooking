@@ -349,20 +349,33 @@ html, body {
 }
 
 .seat-sold {
-    background-color: #0f172a !important;
-    border-color: #1e293b !important;
-    color: #475569 !important;
+    background-color: rgba(30, 41, 59, 0.45) !important;
+    border-color: rgba(71, 85, 105, 0.4) !important;
+    color: #64748b !important;
     cursor: not-allowed !important;
-    opacity: 0.35;
+    opacity: 0.55;
     text-decoration: line-through;
 }
 
 .seat-held {
-    background-color: #450a0a !important;
+    background-color: rgba(239, 68, 68, 0.18) !important;
     border-color: #ef4444 !important;
     color: #fca5a5 !important;
     cursor: not-allowed !important;
-    opacity: 0.8;
+    font-weight: 800 !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.45) !important;
+    position: relative;
+    user-select: none;
+    opacity: 0.95;
+}
+
+.seat-held::after {
+    content: "🔒";
+    position: absolute;
+    font-size: 0.65rem;
+    top: -5px;
+    right: -4px;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.8));
 }
 
 /* Cards & Inputs */

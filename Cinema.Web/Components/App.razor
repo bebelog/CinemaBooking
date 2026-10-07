@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
-    <link rel="stylesheet" href="app.css?v=darkneon_v4" />
+    <link rel="stylesheet" href="app.css?v=darkneon_v5" />
     <link rel="stylesheet" href="Cinema.Web.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet @rendermode="InteractiveServer" />
@@ -22,6 +22,28 @@
 
 <body>
     <Routes @rendermode="InteractiveServer" />
+    <script>
+        window.getCinemaSessionId = function () {
+            try {
+                var match = document.cookie.match(/(?:^|; )Cinema_UserSessionId=([^;]*)/);
+                if (match && match[1]) {
+                    localStorage.setItem('Cinema_UserSessionId', match[1]);
+                    return match[1];
+                }
+                var ls = localStorage.getItem('Cinema_UserSessionId');
+                if (ls) {
+                    document.cookie = "Cinema_UserSessionId=" + ls + "; path=/; max-age=604800; SameSite=Lax";
+                    return ls;
+                }
+                var newId = 'user_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+                localStorage.setItem('Cinema_UserSessionId', newId);
+                document.cookie = "Cinema_UserSessionId=" + newId + "; path=/; max-age=604800; SameSite=Lax";
+                return newId;
+            } catch (e) {
+                return '';
+            }
+        };
+    </script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 
