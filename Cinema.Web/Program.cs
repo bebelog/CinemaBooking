@@ -16,8 +16,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
+builder.Services.AddHttpClient();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -51,7 +53,16 @@ builder.Services.AddTransient<ICreateBookingUseCase, CreateBookingUseCase>();
 builder.Services.AddTransient<IGetBookingDetailsUseCase, GetBookingDetailsUseCase>();
 builder.Services.AddTransient<IViewRecentBookingsUseCase, ViewRecentBookingsUseCase>();
 builder.Services.AddTransient<IViewOccupancyReportUseCase, ViewOccupancyReportUseCase>();
-builder.Services.AddTransient<ISemanticMovieSearchUseCase, SemanticMovieSearchUseCase>();
+builder.Services.AddTransient<ISemanticMovieSearchUseCase>(sp =>
+{
+    var movieRepo = sp.GetRequiredService<IMovieRepository>();
+    var showtimeRepo = sp.GetRequiredService<IShowtimeRepository>();
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var config = sp.GetRequiredService<IConfiguration>();
+    var apiKey = config["Gemini:ApiKey"];
+    var model = config["Gemini:Model"] ?? "gemini-2.5-flash";
+    return new SemanticMovieSearchUseCase(movieRepo, showtimeRepo, httpClientFactory.CreateClient(), apiKey, model);
+});
 
 // 5. Auth & Session
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -19,3 +19,6 @@ TestResults/
 *.DotSettings.user
 *.mdf
 *.ldf
+
+appsettings.Local.json
+Cinema.Web/appsettings.Local.json
