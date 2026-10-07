@@ -1,0 +1,418 @@
+﻿@using Cinema.UseCases.PluginInterfaces.StateStore
+@implements IDisposable
+@inject IGetSeatMapUseCase GetSeatMapUseCase
+@inject IHoldSeatsUseCase HoldSeatsUseCase
+@inject ISeatHoldingStateStore HoldingStore
+@inject UserSessionService UserSession
+@inject IJSRuntime JS
+
+<div class="seat-map-wrapper">
+    <!-- Countdown Timer Banner (When seats are selected) -->
+    @if (_selectedSeatIds.Count > 0 && _remainingSeconds > 0)
+    {
+        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 rounded-4 shadow-sm"
+             style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(239, 68, 68, 0.08)); border: 1px solid rgba(245, 158, 11, 0.4); backdrop-filter: blur(10px);">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center rounded-circle"
+                     style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24;">
+                    <i class="bi bi-stopwatch-fill fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-white d-flex align-items-center gap-2">
+                        <span>Thời gian giữ ghế còn lại:</span>
+                        <span class="badge bg-danger fs-6 font-monospace px-3 py-1 shadow-sm" style="letter-spacing: 1px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;">
+                            @_countdownText
+                        </span>
+                    </div>
+                    <div class="small mt-1" style="color: #cbd5e1;">
+                        Vui lòng hoàn tất thông tin &amp; đặt vé trước khi hết 10 phút. Hệ thống tự động bảo lưu ghế của bạn kể cả khi tải lại trang!
+                    </div>
+                </div>
+            </div>
+            <button type="button" 
+                    class="btn btn-outline-danger btn-sm fw-bold px-3 py-2 mt-2 mt-sm-0 rounded-pill d-flex align-items-center gap-1 shadow-sm" 
+                    @onclick="HandleReleaseAllSeats"
+                    style="border-color: rgba(239, 68, 68, 0.6); color: #fca5a5;">
+                <i class="bi bi-x-circle-fill"></i>
+                <span>Hủy Giữ Ghế</span>
+            </button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_loadError))
+    {
+        <div class="alert alert-danger alert-dismissible fade show p-2 mb-3 small" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>@_loadError
+            <button type="button" class="btn-close btn-close-sm" @onclick="() => _loadError = null"></button>
+        </div>
+    }
+
+    <!-- Cinema Screen View -->
+    <div class="screen-container">
+        <div class="screen-bar"></div>
+        <div class="screen-beam"></div>
+        <div class="screen-text">
+            <i class="bi bi-display me-1"></i>MÀN HÌNH CHIẾU
+        </div>
+    </div>
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Đang tải sơ đồ ghế...</span>
+            </div>
+            <p class="text-muted mt-2">Đang tải sơ đồ phòng chiếu...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Seat Grid by Rows -->
+        <div class="d-flex flex-column align-items-center mb-4">
+            @foreach (var rowGroup in _seats.GroupBy(s => s.RowCode).OrderBy(g => g.Key))
+            {
+                <div class="seat-row">
+                    <div class="row-label">@rowGroup.Key</div>
+
+                    @foreach (var seat in rowGroup.OrderBy(s => s.SeatNumber))
+                    {
+                        var isSelected = _selectedSeatIds.Contains(seat.SeatId);
+                        var seatClass = GetSeatCssClass(seat, isSelected);
+                        var tooltip = GetSeatTooltip(seat, isSelected);
+
+                        <button type="button"
+                                class="seat-item @seatClass"
+                                title="@tooltip"
+                                disabled="@(seat.IsBooked || (seat.IsHeldByOther && !isSelected && !seat.IsHeldByMe))"
+                                @onclick="() => ToggleSeatSelection(seat)">
+                            @seat.SeatNumber
+                        </button>
+                    }
+
+                    <div class="row-label">@rowGroup.Key</div>
+                </div>
+            }
+        </div>
+
+        <!-- Legend -->
+        <div class="legend-box mb-3">
+            <div class="legend-item">
+                <div class="legend-color seat-standard"></div>
+                <span>Ghế thường (@BasePrice.ToString("N0") đ)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color seat-vip"></div>
+                <span>Ghế VIP (+20.000 đ)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color seat-sweetbox"></div>
+                <span>Ghế đôi Sweetbox (+40.000 đ)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color seat-selected"></div>
+                <span>Đang chọn</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color seat-held"></div>
+                <span>Đang giữ chỗ (Tạm thời)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color seat-sold"></div>
+                <span>Đã bán</span>
+            </div>
+        </div>
+
+        <!-- Real-time selected seats summary -->
+        <div class="d-flex justify-content-between align-items-center p-3 rounded-3" 
+             style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(51, 65, 85, 0.5);">
+            <div>
+                <span class="small" style="color: #94a3b8;">Ghế đã chọn: </span>
+                @if (_selectedSeatIds.Count == 0)
+                {
+                    <span class="fw-bold" style="color: #64748b;">Chưa chọn ghế nào</span>
+                }
+                else
+                {
+                    <span class="fw-bold text-warning">
+                        @string.Join(", ", _seats.Where(s => _selectedSeatIds.Contains(s.SeatId)).Select(s => s.SeatDisplayName))
+                    </span>
+                    <span class="badge bg-warning text-dark ms-2 fw-bold">@_selectedSeatIds.Count ghế</span>
+                }
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="Làm mới tình trạng ghế">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int ShowtimeId { get; set; }
+    [Parameter] public decimal BasePrice { get; set; }
+    [Parameter] public EventCallback<List<SeatDto>> OnSelectionChanged { get; set; }
+
+    private List<SeatDto> _seats = new();
+    private HashSet<int> _selectedSeatIds = new();
+    private bool _isLoading = true;
+    private string? _loadError;
+    private int _lastLoadedShowtimeId;
+
+    // Countdown timer state
+    private System.Threading.Timer? _countdownTimer;
+    private int _remainingSeconds = 0;
+    private string _countdownText = "10:00";
+    private DateTime? _holdExpiryUtc;
+
+    protected override void OnInitialized()
+    {
+        HoldingStore.OnSeatsChanged += HandleExternalSeatsChanged;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_lastLoadedShowtimeId != ShowtimeId)
+        {
+            _lastLoadedShowtimeId = ShowtimeId;
+            _selectedSeatIds.Clear();
+            StopTimer();
+            await LoadSeatsAsync(notifyParent: false);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var clientSessionId = await JS.InvokeAsync<string>("getCinemaSessionId");
+                if (!string.IsNullOrWhiteSpace(clientSessionId) && clientSessionId != UserSession.SessionId)
+                {
+                    UserSession.SetSessionId(clientSessionId);
+                    await LoadSeatsAsync(notifyParent: true);
+                    StateHasChanged();
+                }
+            }
+            catch { }
+        }
+    }
+
+    private async void HandleExternalSeatsChanged(int showtimeId)
+    {
+        if (showtimeId == 0 || showtimeId == ShowtimeId)
+        {
+            try
+            {
+                await InvokeAsync(async () =>
+                {
+                    await LoadSeatsAsync(notifyParent: false);
+                    StateHasChanged();
+                });
+            }
+            catch { }
+        }
+    }
+
+    public async Task LoadSeatsAsync(bool notifyParent = false)
+    {
+        _isLoading = true;
+        _loadError = null;
+        try
+        {
+            var result = await GetSeatMapUseCase.ExecuteAsync(ShowtimeId, UserSession.SessionId);
+            _seats = result.ToList();
+
+            // Khôi phục các ghế phiên hiện tại đang giữ nếu vừa F5 hoặc tải lại trang
+            if (_selectedSeatIds.Count == 0)
+            {
+                var myHeld = _seats.Where(s => s.IsHeldByMe).Select(s => s.SeatId).ToList();
+                if (myHeld.Any())
+                {
+                    foreach (var id in myHeld)
+                    {
+                        _selectedSeatIds.Add(id);
+                    }
+
+                    var expiry = HoldingStore.GetHoldExpiryTime(ShowtimeId, UserSession.SessionId);
+                    if (expiry.HasValue && expiry.Value > DateTime.UtcNow)
+                    {
+                        _holdExpiryUtc = expiry.Value;
+                        StartTimer();
+                    }
+                    notifyParent = true;
+                }
+            }
+
+            // Loại bỏ các ghế đã bị người khác đặt hoặc giữ khỏi danh sách đang chọn
+            _selectedSeatIds.RemoveWhere(id => 
+            {
+                var s = _seats.FirstOrDefault(x => x.SeatId == id);
+                return s == null || s.IsBooked || (s.IsHeldByOther && !s.IsHeldByMe);
+            });
+
+            if (_selectedSeatIds.Count == 0)
+            {
+                StopTimer();
+            }
+
+            if (notifyParent)
+            {
+                await NotifyParentSelectionAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _loadError = $"Không thể tải sơ đồ ghế: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ToggleSeatSelection(SeatDto seat)
+    {
+        if (seat.IsBooked || (seat.IsHeldByOther && !seat.IsHeldByMe)) return;
+
+        if (_selectedSeatIds.Contains(seat.SeatId))
+        {
+            _selectedSeatIds.Remove(seat.SeatId);
+            HoldSeatsUseCase.Release(ShowtimeId, new[] { seat.SeatId }, UserSession.SessionId);
+
+            if (_selectedSeatIds.Count == 0)
+            {
+                StopTimer();
+            }
+        }
+        else
+        {
+            if (_selectedSeatIds.Count >= 8)
+            {
+                _loadError = "Bạn chỉ được chọn tối đa 8 ghế trong một lần đặt vé!";
+                return;
+            }
+
+            bool holdSuccess = HoldSeatsUseCase.TryHold(ShowtimeId, new[] { seat.SeatId }, UserSession.SessionId, TimeSpan.FromMinutes(10));
+            if (!holdSuccess)
+            {
+                _loadError = $"Ghế {seat.SeatDisplayName} vừa bị người khác chọn trước. Vui lòng chọn ghế khác!";
+                await LoadSeatsAsync(notifyParent: true);
+                return;
+            }
+
+            _selectedSeatIds.Add(seat.SeatId);
+
+            if (_countdownTimer == null)
+            {
+                _holdExpiryUtc = DateTime.UtcNow.AddMinutes(10);
+                StartTimer();
+            }
+        }
+
+        await NotifyParentSelectionAsync();
+    }
+
+    private void StartTimer()
+    {
+        StopTimer();
+        _remainingSeconds = 600;
+        _countdownText = "10:00";
+
+        _countdownTimer = new System.Threading.Timer(async _ =>
+        {
+            if (_holdExpiryUtc.HasValue)
+            {
+                var remaining = (int)Math.Max(0, (_holdExpiryUtc.Value - DateTime.UtcNow).TotalSeconds);
+                _remainingSeconds = remaining;
+                var ts = TimeSpan.FromSeconds(remaining);
+                _countdownText = $"{remaining / 60:D2}:{remaining % 60:D2}";
+
+                if (remaining <= 0)
+                {
+                    StopTimer();
+                    await InvokeAsync(async () =>
+                    {
+                        if (_selectedSeatIds.Count > 0)
+                        {
+                            HoldSeatsUseCase.Release(ShowtimeId, _selectedSeatIds, UserSession.SessionId);
+                            _selectedSeatIds.Clear();
+                            _loadError = "Thời gian giữ ghế (10 phút) đã hết. Ghế đã được tự động giải phóng!";
+                            await NotifyParentSelectionAsync();
+                            await LoadSeatsAsync(notifyParent: true);
+                            StateHasChanged();
+                        }
+                    });
+                }
+                else
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }, null, 1000, 1000);
+    }
+
+    private void StopTimer()
+    {
+        _countdownTimer?.Dispose();
+        _countdownTimer = null;
+        _remainingSeconds = 0;
+        _countdownText = "10:00";
+    }
+
+    public async Task HandleReleaseAllSeats()
+    {
+        if (_selectedSeatIds.Count > 0)
+        {
+            HoldSeatsUseCase.Release(ShowtimeId, _selectedSeatIds, UserSession.SessionId);
+            _selectedSeatIds.Clear();
+            StopTimer();
+            await NotifyParentSelectionAsync();
+            await LoadSeatsAsync(notifyParent: true);
+        }
+    }
+
+    private async Task NotifyParentSelectionAsync()
+    {
+        var selectedList = _seats.Where(s => _selectedSeatIds.Contains(s.SeatId)).ToList();
+        await OnSelectionChanged.InvokeAsync(selectedList);
+    }
+
+    private string GetSeatCssClass(SeatDto seat, bool isSelected)
+    {
+        if (seat.IsBooked)
+            return "seat-sold";
+
+        if (isSelected || seat.IsHeldByMe)
+            return "seat-selected";
+
+        if (seat.IsHeldByOther)
+            return "seat-held";
+
+        return seat.SeatType switch
+        {
+            "VIP" => "seat-vip",
+            "Sweetbox" => "seat-sweetbox",
+            _ => "seat-standard"
+        };
+    }
+
+    private string GetSeatTooltip(SeatDto seat, bool isSelected)
+    {
+        if (seat.IsBooked) 
+            return $"Ghế {seat.SeatDisplayName} - Đã bán";
+        if (isSelected || seat.IsHeldByMe) 
+            return $"Ghế {seat.SeatDisplayName} - Bạn đang giữ chỗ (hoàn tất trong 10 phút)";
+        if (seat.IsHeldByOther) 
+            return $"Ghế {seat.SeatDisplayName} - Khách khác đang giữ tạm thời (còn < 10 phút)";
+
+        return $"Ghế {seat.SeatDisplayName} ({seat.SeatType}) - Giá: {seat.FinalPrice:N0} đ";
+    }
+
+    public void Dispose()
+    {
+        HoldingStore.OnSeatsChanged -= HandleExternalSeatsChanged;
+        StopTimer();
+    }
+}
