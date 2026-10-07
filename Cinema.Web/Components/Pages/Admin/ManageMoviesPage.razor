@@ -9,15 +9,16 @@
 
 <div class="container py-4">
     <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
         <div>
-            <h2 class="fw-bold text-slate-900 mb-1">
-                <i class="bi bi-film text-primary me-2"></i>Quản Lý Phim &amp; Thêm / Sửa Phim
+            <h2 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-film text-warning"></i>
+                <span>Quản Lý Phim &amp; Thêm / Sửa Phim</span>
             </h2>
             <p class="text-muted mb-0">Thêm phim mới, chỉnh sửa thông tin hoặc xóa phim khỏi danh mục chiếu rạp.</p>
         </div>
         <div class="student-tag">
-            <i class="bi bi-shield-check text-primary me-1"></i>Khu vực Quản trị viên
+            <i class="bi bi-shield-check text-warning me-1"></i>Khu vực Quản trị viên
         </div>
     </div>
 
@@ -32,54 +33,39 @@
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Lỗi:</strong> @_errorMessage
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@_errorMessage
             <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
         </div>
     }
 
     <div class="row g-4">
-        <!-- Form Add / Edit Movie -->
-        <div class="col-lg-5">
+        <!-- Form Add/Edit Movie -->
+        <div class="col-lg-4">
             <div class="card card-clean p-4 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
-                    <h5 class="fw-bold text-slate-900 mb-0">
-                        @if (_isEditing)
-                        {
-                            <span class="text-warning"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phim</span>
-                        }
-                        else
-                        {
-                            <span class="text-primary"><i class="bi bi-plus-circle me-2"></i>Thêm Phim Chiếu Mới</span>
-                        }
-                    </h5>
-
-                    @if (_isEditing)
-                    {
-                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CancelEdit">
-                            <i class="bi bi-x-circle me-1"></i>Hủy chỉnh sửa
-                        </button>
-                    }
-                </div>
+                <h5 class="fw-bold text-white pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <i class="bi @(_isEditing ? "bi-pencil-square text-warning" : "bi-plus-circle text-warning") me-2"></i>
+                    @(_isEditing ? "Chỉnh Sửa Phim" : "Thêm Phim Chiếu Mới")
+                </h5>
 
                 <form @onsubmit="HandleSaveMovie" @onsubmit:preventDefault>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Tên Phim *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Tên Phim *</label>
                         <input type="text" class="form-control form-control-sm" 
-                               placeholder="VD: Avatar 3: Lửa &amp; Tro" 
+                               placeholder="VD: Avatar 3: Lửa & Tro" 
                                @bind="_currentMovie.Title" required />
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold">Thời Lượng (Phút) *</label>
-                            <input type="number" class="form-control form-control-sm" min="30" max="300" 
-                                   @bind="_currentMovie.DurationMinutes" required />
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Thời Lượng (Phút) *</label>
+                            <input type="number" class="form-control form-control-sm" 
+                                   @bind="_currentMovie.DurationMinutes" min="30" max="300" required />
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold">Độ Tuổi *</label>
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Độ Tuổi *</label>
                             <select class="form-select form-select-sm" @bind="_currentMovie.AgeRating">
-                                <option value="P">P (Mọi lứa tuổi)</option>
-                                <option value="K">K (Dưới 13t có kèm phụ huynh)</option>
+                                <option value="P">P (Phổ biến)</option>
+                                <option value="K">K (Khán giả dưới 13 tuổi có kèm người lớn)</option>
                                 <option value="T13">T13 (Từ 13 tuổi trở lên)</option>
                                 <option value="T16">T16 (Từ 16 tuổi trở lên)</option>
                                 <option value="T18">T18 (Từ 18 tuổi trở lên)</option>
@@ -88,21 +74,21 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Thể Loại *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Thể Loại *</label>
                         <input type="text" class="form-control form-control-sm" 
-                               placeholder="VD: Hành động, Khoa học viễn tưởng" 
+                               placeholder="VD: Hành động, Viễn tưởng" 
                                @bind="_currentMovie.Genre" required />
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold">Đạo Diễn *</label>
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Đạo Diễn *</label>
                             <input type="text" class="form-control form-control-sm" 
                                    placeholder="VD: James Cameron" 
                                    @bind="_currentMovie.Director" required />
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold">Ngày Công Chiếu *</label>
+                            <label class="form-label small fw-bold" style="color: #cbd5e1;">Ngày Công Chiếu *</label>
                             <input type="date" class="form-control form-control-sm" 
                                    value="@_releaseDateString" 
                                    @onchange="OnReleaseDateChanged" required />
@@ -110,35 +96,35 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Diễn Viên Chính *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Diễn Viên Chính *</label>
                         <input type="text" class="form-control form-control-sm" 
                                placeholder="VD: Sam Worthington, Zoe Saldana" 
                                @bind="_currentMovie.Cast" required />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Đường Dẫn Poster (URL Ảnh) *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Đường Dẫn Poster (URL Ảnh) *</label>
                         <input type="url" class="form-control form-control-sm" 
                                placeholder="https://..." 
                                @bind="_currentMovie.PosterUrl" required />
                         <div class="d-flex gap-1 mt-1">
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;"
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
                                     @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80"'>
                                 Mẫu 1
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;"
-                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=600&auto=format&fit=crop&q=80"'>
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
+                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80"'>
                                 Mẫu 2
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.72rem;"
-                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80"'>
+                            <button type="button" class="btn btn-outline-secondary btn-sm p-0 px-2" style="font-size: 0.75rem;"
+                                    @onclick='() => _currentMovie.PosterUrl = "https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?w=600&auto=format&fit=crop&q=80"'>
                                 Mẫu 3
                             </button>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Tóm Tắt Nội Dung Phim *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Tóm Tắt Nội Dung Phim *</label>
                         <textarea class="form-control form-control-sm" rows="3" 
                                   placeholder="Mô tả tóm tắt nội dung hấp dẫn của bộ phim..." 
                                   @bind="_currentMovie.Description" required></textarea>
@@ -146,23 +132,23 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" 
-                                class="btn @(_isEditing ? "btn-warning text-dark" : "btn-primary") flex-grow-1 py-2 fw-bold" 
-                                disabled="@_isSubmitting" style="border-radius: 8px;">
+                                class="btn btn-cinema-gold flex-grow-1 py-2 fw-bold" 
+                                disabled="@_isSubmitting">
                             @if (_isSubmitting)
                             {
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                <span>Đang xử lý...</span>
+                                <span class="spinner-border spinner-border-sm me-2 text-dark"></span>
+                                <span>Đang lưu...</span>
                             }
                             else
                             {
-                                <i class="bi @(_isEditing ? "bi-check-lg" : "bi-save") me-1"></i>
-                                <span>@(_isEditing ? "Cập Nhật Thông Tin Phim" : "Lưu Phim Mới Vào Rạp")</span>
+                                <i class="bi @(_isEditing ? "bi-check2-circle" : "bi-save") me-1"></i>
+                                <span>@(_isEditing ? "Cập Nhật Phim" : "Lưu Phim Mới Vào Rạp")</span>
                             }
                         </button>
 
                         @if (_isEditing)
                         {
-                            <button type="button" class="btn btn-outline-secondary px-3" @onclick="CancelEdit">
+                            <button type="button" class="btn btn-outline-secondary btn-sm px-3" @onclick="CancelEdit">
                                 Hủy
                             </button>
                         }
@@ -172,11 +158,11 @@
         </div>
 
         <!-- Table Movies List -->
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <div class="card card-clean p-4 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
-                    <h5 class="fw-bold text-slate-900 mb-0">
-                        <i class="bi bi-collection-play text-primary me-2"></i>Danh Sách Phim Trong Rạp (@_movies.Count phim)
+                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="bi bi-collection-play text-warning me-2"></i>Danh Sách Phim Trong Rạp (@_movies.Count phim)
                     </h5>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="LoadMoviesAsync">
                         <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
@@ -186,14 +172,14 @@
                 @if (_isLoading)
                 {
                     <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="spinner-border text-warning" role="status"></div>
                     </div>
                 }
                 else
                 {
                     <div class="table-responsive">
                         <table class="table table-hover align-middle small mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Poster</th>
                                     <th>Tên Phim</th>
@@ -206,25 +192,25 @@
                             <tbody>
                                 @foreach (var m in _movies)
                                 {
-                                    <tr class="@(_isEditing && _currentMovie.MovieId == m.MovieId ? "table-warning" : "")">
+                                    <tr class="@(_isEditing && _currentMovie.MovieId == m.MovieId ? "table-active" : "")">
                                         <td style="width: 55px;">
                                             <img src="@m.PosterUrl" alt="@m.Title" 
                                                  class="rounded border" style="width: 45px; height: 60px; object-fit: cover;" />
                                         </td>
                                         <td>
-                                            <strong class="text-slate-900 fs-6">@m.Title</strong>
-                                            <div class="text-muted small">ĐD: @m.Director</div>
+                                            <strong class="text-white fs-6">@m.Title</strong>
+                                            <div class="small" style="color: #94a3b8;">ĐD: @m.Director</div>
                                         </td>
-                                        <td>@m.DurationMinutes phút</td>
+                                        <td style="color: #cbd5e1;">@m.DurationMinutes phút</td>
                                         <td>
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                            <span class="badge" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);">
                                                 @m.AgeRating
                                             </span>
                                         </td>
-                                        <td>@m.Genre</td>
+                                        <td style="color: #cbd5e1;">@m.Genre</td>
                                         <td class="text-end">
                                             <div class="btn-group">
-                                                <button class="btn btn-outline-primary btn-sm p-1 px-2" 
+                                                <button class="btn btn-outline-info btn-sm p-1 px-2" 
                                                         title="Chỉnh sửa phim này"
                                                         @onclick="() => StartEditMovie(m)">
                                                     <i class="bi bi-pencil-square"></i> Sửa

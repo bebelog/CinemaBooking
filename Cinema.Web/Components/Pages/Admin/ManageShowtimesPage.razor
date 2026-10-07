@@ -10,25 +10,26 @@
 
 <div class="container py-4">
     <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
         <div>
-            <h2 class="fw-bold text-slate-900 mb-1">
-                <i class="bi bi-calendar3-range text-primary me-2"></i>Quản Lý Suất Chiếu
+            <h2 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3-range text-warning"></i>
+                <span>Quản Lý Suất Chiếu</span>
             </h2>
             <p class="text-muted mb-0">Thêm mới, theo dõi và sắp xếp lịch chiếu tại các phòng chiếu CineStar Huế.</p>
         </div>
         <div class="student-tag">
-            <i class="bi bi-shield-check text-primary me-1"></i>Khu vực Quản trị viên
+            <i class="bi bi-shield-check text-warning me-1"></i>Khu vực Quản trị viên
         </div>
     </div>
 
     <!-- Rule 2 Explanatory Alert -->
-    <div class="card bg-primary-subtle border border-primary-subtle p-3 mb-4 rounded-3">
-        <div class="d-flex align-items-start gap-2">
-            <i class="bi bi-info-circle-fill text-primary fs-5 mt-1"></i>
+    <div class="card p-3 mb-4 rounded-3" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.35); color: #e0f2fe;">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-info-circle-fill text-info fs-4 mt-1"></i>
             <div>
-                <strong class="text-primary d-block">Quy tắc nghiệp vụ LUẬT 2: Suất chiếu cùng phòng không được chồng giờ</strong>
-                <span class="text-secondary small">
+                <strong class="text-info d-block fs-6 mb-1">Quy tắc nghiệp vụ LUẬT 2: Suất chiếu cùng phòng không được chồng giờ</strong>
+                <span class="small" style="color: #cbd5e1;">
                     Hệ thống tự động tính: <code>EndTime = StartTime + Thời lượng phim + 15 phút dọn dẹp phòng chiếu</code>. 
                     Nếu bạn xếp một suất chiếu bị trùng thời gian với suất chiếu sẵn có trong cùng phòng, quy tắc tên <strong>ShowtimeScheduleRule</strong> sẽ ném ngoại lệ <code>ShowtimeOverlapException</code> và từ chối ghi nhận để bảo đảm chất lượng vận hành rạp.
                 </span>
@@ -56,13 +57,13 @@
         <!-- Form Add Showtime -->
         <div class="col-lg-4">
             <div class="card card-clean p-4 shadow-sm">
-                <h5 class="fw-bold text-slate-900 pb-2 border-bottom mb-3">
-                    <i class="bi bi-plus-circle text-primary me-2"></i>Thêm Suất Chiếu Mới
+                <h5 class="fw-bold text-white pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <i class="bi bi-plus-circle text-warning me-2"></i>Thêm Suất Chiếu Mới
                 </h5>
 
                 <form @onsubmit="HandleCreateShowtime" @onsubmit:preventDefault>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Phim Chiếu *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Phim Chiếu *</label>
                         <select class="form-select form-select-sm" @bind="_newShowtime.MovieId" required>
                             <option value="0">-- Chọn phim chiếu --</option>
                             @foreach (var m in _movies)
@@ -73,7 +74,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Phòng Chiếu *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Phòng Chiếu *</label>
                         <select class="form-select form-select-sm" @bind="_newShowtime.AuditoriumId" required>
                             <option value="0">-- Chọn phòng chiếu --</option>
                             @foreach (var a in _auditoriums)
@@ -84,24 +85,26 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Thời Gian Bắt Đầu *</label>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Thời Gian Bắt Đầu *</label>
                         <input type="datetime-local" class="form-control form-control-sm" 
                                value="@_startTimeString" 
                                @onchange="OnStartTimeChanged" required />
-                        <small class="text-muted d-block mt-1">Giờ chiếu kế tiếp cần cách tối thiểu 15 phút dọn phòng.</small>
+                        <small class="text-muted d-block mt-1">
+                            Giờ chiếu kế tiếp cần cách tối thiểu 15 phút dọn phòng.
+                        </small>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Giá Vé Cơ Bản (VNĐ) *</label>
-                        <input type="number" class="form-control form-control-sm" step="5000" min="50000" max="250000" 
-                               @bind="_newShowtime.BasePrice" required />
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Giá Vé Cơ Bản (VNĐ) *</label>
+                        <input type="number" class="form-control form-control-sm" 
+                               @bind="_newShowtime.BasePrice" min="10000" step="5000" required />
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" disabled="@_isSubmitting" style="border-radius: 8px;">
+                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" disabled="@_isSubmitting">
                         @if (_isSubmitting)
                         {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            <span>Đang kiểm tra lịch...</span>
+                            <span class="spinner-border spinner-border-sm me-2 text-dark"></span>
+                            <span>Đang kiểm tra trùng lịch...</span>
                         }
                         else
                         {
@@ -116,9 +119,9 @@
         <!-- Table Showtimes List -->
         <div class="col-lg-8">
             <div class="card card-clean p-4 shadow-sm">
-                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
-                    <h5 class="fw-bold text-slate-900 mb-0">
-                        <i class="bi bi-list-check text-primary me-2"></i>Toàn Bộ Suất Chiếu
+                <div class="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="bi bi-list-check text-warning me-2"></i>Toàn Bộ Suất Chiếu
                     </h5>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="LoadDataAsync">
                         <i class="bi bi-arrow-clockwise me-1"></i>Tải lại
@@ -128,12 +131,12 @@
                 @if (_isLoading)
                 {
                     <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="spinner-border text-warning" role="status"></div>
                     </div>
                 }
                 else if (!_showtimes.Any())
                 {
-                    <div class="alert alert-light text-center py-4 border text-muted">
+                    <div class="alert alert-dark text-center py-4 border text-muted">
                         Hiện tại chưa có suất chiếu nào được lên lịch.
                     </div>
                 }
@@ -141,7 +144,7 @@
                 {
                     <div class="table-responsive">
                         <table class="table table-hover align-middle small mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Phim</th>
@@ -156,24 +159,24 @@
                                 @foreach (var st in _showtimes.OrderByDescending(s => s.StartTime))
                                 {
                                     <tr>
-                                        <td class="font-monospace text-muted">#@st.ShowtimeId</td>
+                                        <td class="font-monospace">#@st.ShowtimeId</td>
                                         <td>
-                                            <strong class="text-slate-900">@st.MovieTitle</strong>
-                                            <div class="text-muted small">@st.MovieDurationMinutes phút</div>
+                                            <strong class="text-white fs-6">@st.MovieTitle</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.MovieDurationMinutes phút</div>
                                         </td>
                                         <td>
-                                            <div>@st.AuditoriumName</div>
-                                            <span class="badge bg-secondary-subtle text-secondary">@st.ScreenType</span>
+                                            <div class="text-white fw-semibold">@st.AuditoriumName</div>
+                                            <span class="badge badge-cinema-screen">@st.ScreenType</span>
                                         </td>
                                         <td>
-                                            <strong class="text-primary">@st.StartTime.ToString("HH:mm")</strong>
-                                            <div class="text-muted small">@st.StartTime.ToString("dd/MM/yyyy")</div>
+                                            <strong class="text-warning">@st.StartTime.ToString("HH:mm")</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.StartTime.ToString("dd/MM/yyyy")</div>
                                         </td>
                                         <td>
-                                            <strong>@st.EndTime.ToString("HH:mm")</strong>
-                                            <div class="text-muted small">@st.EndTime.ToString("dd/MM/yyyy")</div>
+                                            <strong class="text-white">@st.EndTime.ToString("HH:mm")</strong>
+                                            <div class="small" style="color: #94a3b8;">@st.EndTime.ToString("dd/MM/yyyy")</div>
                                         </td>
-                                        <td class="fw-bold text-success">
+                                        <td class="fw-bold text-warning fs-6">
                                             @st.BasePrice.ToString("N0") đ
                                         </td>
                                         <td class="text-end">

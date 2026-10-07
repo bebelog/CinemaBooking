@@ -7,14 +7,15 @@
 
 <div class="container py-4">
     <!-- Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.08) !important;">
         <div>
-            <h2 class="fw-bold text-slate-900 mb-1">
-                <i class="bi bi-receipt-cutoff text-primary me-2"></i>Quản Lý Đơn Đặt Vé
+            <h2 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-receipt-cutoff text-warning"></i>
+                <span>Quản Lý Đơn Đặt Vé</span>
             </h2>
             <p class="text-muted mb-0">Theo dõi toàn bộ các giao dịch đặt vé xem phim của khách hàng qua hệ thống.</p>
         </div>
-        <button class="btn btn-outline-primary btn-sm" @onclick="LoadBookingsAsync">
+        <button class="btn btn-outline-secondary btn-sm" @onclick="LoadBookingsAsync">
             <i class="bi bi-arrow-clockwise me-1"></i>Tải lại dữ liệu
         </button>
     </div>
@@ -22,13 +23,13 @@
     @if (_isLoading)
     {
         <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
+            <div class="spinner-border text-warning" role="status"></div>
             <p class="text-muted mt-2">Đang tải danh sách đơn đặt vé...</p>
         </div>
     }
     else if (!_bookings.Any())
     {
-        <div class="alert alert-light text-center py-5 border text-muted">
+        <div class="alert alert-dark text-center py-5 border text-muted">
             <i class="bi bi-inbox fs-2 text-muted d-block mb-2"></i>
             Chưa có đơn đặt vé nào trong hệ thống.
         </div>
@@ -38,7 +39,7 @@
         <div class="card card-clean p-4 shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover align-middle small mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Mã Đơn Vé</th>
                             <th>Suất #</th>
@@ -55,27 +56,27 @@
                         @foreach (var b in _bookings)
                         {
                             <tr>
-                                <td class="font-monospace fw-bold text-primary">@b.BookingReference</td>
-                                <td class="font-monospace">#@b.ShowtimeId</td>
-                                <td><strong class="text-slate-900">@b.CustomerName</strong></td>
+                                <td class="font-monospace fw-bold text-info">@b.BookingReference</td>
+                                <td class="font-monospace" style="color: #94a3b8;">#@b.ShowtimeId</td>
+                                <td><strong class="text-white fs-6">@b.CustomerName</strong></td>
                                 <td>
-                                    <div><i class="bi bi-telephone me-1 text-muted"></i>@b.CustomerPhone</div>
-                                    <div class="text-muted small"><i class="bi bi-envelope me-1"></i>@b.CustomerEmail</div>
+                                    <div style="color: #cbd5e1;"><i class="bi bi-telephone me-1 text-warning"></i>@b.CustomerPhone</div>
+                                    <div class="small" style="color: #94a3b8;"><i class="bi bi-envelope me-1"></i>@b.CustomerEmail</div>
                                 </td>
                                 <td>
-                                    <div>@b.BookingTime.ToString("HH:mm")</div>
-                                    <div class="text-muted small">@b.BookingTime.ToString("dd/MM/yyyy")</div>
+                                    <div class="fw-semibold text-white">@b.BookingTime.ToString("HH:mm")</div>
+                                    <div class="small" style="color: #94a3b8;">@b.BookingTime.ToString("dd/MM/yyyy")</div>
                                 </td>
-                                <td><span class="badge bg-light text-dark border">@b.PaymentMethod</span></td>
-                                <td class="fw-bold text-success">@b.TotalAmount.ToString("N0") đ</td>
+                                <td><span class="badge badge-cinema-payment">@b.PaymentMethod</span></td>
+                                <td class="fw-bold text-warning fs-6">@b.TotalAmount.ToString("N0") đ</td>
                                 <td>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                    <span class="badge badge-cinema-confirmed">
                                         <i class="bi bi-check2-circle me-1"></i>@b.Status
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <a href="/confirmation/@b.BookingReference" class="btn btn-outline-primary btn-sm px-2" title="Xem vé điện tử">
-                                        <i class="bi bi-eye"></i> Xem vé
+                                    <a href="/confirmation/@b.BookingReference" class="btn btn-outline-info btn-sm px-2" title="Xem vé điện tử">
+                                        <i class="bi bi-eye me-1"></i>Xem vé
                                     </a>
                                 </td>
                             </tr>
