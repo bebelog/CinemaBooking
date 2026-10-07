@@ -1,4 +1,4 @@
-@using Cinema.UseCases.PluginInterfaces.StateStore
+﻿@using Cinema.UseCases.PluginInterfaces.StateStore
 @implements IDisposable
 @inject IGetSeatMapUseCase GetSeatMapUseCase
 @inject IHoldSeatsUseCase HoldSeatsUseCase
@@ -39,6 +39,7 @@
     <!-- Cinema Screen View -->
     <div class="screen-container">
         <div class="screen-bar"></div>
+        <div class="screen-beam"></div>
         <div class="screen-text">
             <i class="bi bi-display me-1"></i>MÀN HÌNH CHIẾU
         </div>
