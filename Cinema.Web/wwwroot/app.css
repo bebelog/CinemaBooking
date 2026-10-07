@@ -1,84 +1,62 @@
 ﻿/* ==========================================================================
-   CineStar Huế - Premium Dark Cinema Theme Design System
-   Đề tài 14: Rạp phim: Chọn ghế & Đặt vé
-   Sinh viên thực hiện: Nguyễn Viết Mẫn - MSSV: 23K4080026 - HUE
+   CineStar Huế - Official DARK NEON Cinema Theme System
    ========================================================================== */
 
 :root {
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     
-    /* Dark Cinema Color Palette */
-    --bg-main: #0b0f19;
-    --bg-card: #111827;
-    --bg-card-alt: #161f30;
+    --bg-main: #080c14;
+    --bg-card: #0f172a;
+    --bg-card-alt: #162032;
     --bg-input: #1e293b;
     
     --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     
-    --border-color: rgba(255, 255, 255, 0.09);
-    --border-hover: rgba(255, 255, 255, 0.2);
-    --border-subtle: #1e293b;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(245, 158, 11, 0.4);
     
-    /* CineStar Brand Accents */
-    --primary: #f59e0b;
-    --primary-hover: #d97706;
-    --primary-light: rgba(245, 158, 11, 0.15);
-    --primary-glow: rgba(245, 158, 11, 0.4);
-    
-    --accent-cyan: #38bdf8;
-    --accent-red: #e11d48;
-    --accent-purple: #8b5cf6;
-    
-    /* Seat States */
-    --seat-std-bg: #1e293b;
-    --seat-std-border: #475569;
-    --seat-std-text: #e2e8f0;
-    
-    --vip-bg: #451a03;
-    --vip-border: #f59e0b;
-    --vip-text: #fef3c7;
-    
-    --sweetbox-bg: #500724;
-    --sweetbox-border: #ec4899;
-    --sweetbox-text: #fdf2f8;
-    
-    --sold-bg: #0f172a;
-    --sold-border: #1e293b;
-    --sold-text: #475569;
-    
-    --held-bg: #450a0a;
-    --held-border: #ef4444;
-    --held-text: #fca5a5;
-    
-    --selected-bg: #f59e0b;
-    --selected-border: #fbbf24;
-    --selected-text: #000000;
-    
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 35px rgba(0, 0, 0, 0.6);
+    --gold: #f59e0b;
+    --gold-glow: rgba(245, 158, 11, 0.6);
+    --cyan: #38bdf8;
+    --cyan-glow: rgba(56, 189, 248, 0.5);
+    --pink: #ec4899;
 }
 
-body {
+html, body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
     font-family: var(--font-sans);
-    background-color: var(--bg-main);
-    color: var(--text-primary);
     margin: 0;
     padding: 0;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
 }
 
-/* Navbar */
+/* Force dark on all common bootstrap light classes */
+.bg-light, .bg-white {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.text-dark, .text-slate-900, .text-slate-800 {
+    color: #ffffff !important;
+}
+
+.text-secondary, .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+.border {
+    border-color: var(--border-color) !important;
+}
+
+/* Navbar Dark Neon */
 .cinema-navbar {
-    background-color: rgba(11, 15, 25, 0.92);
+    background: rgba(8, 12, 20, 0.95) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding: 0.85rem 1.5rem;
     position: sticky;
     top: 0;
@@ -86,30 +64,29 @@ body {
 }
 
 .cinema-brand {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     font-weight: 800;
-    color: #ffffff;
+    color: #ffffff !important;
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    letter-spacing: -0.5px;
 }
 
 .cinema-brand i {
     font-size: 1.5rem;
-    color: var(--accent-red);
+    color: #ef4444;
 }
 
-.cinema-brand .brand-badge {
-    color: var(--primary);
+.brand-badge {
+    color: var(--gold) !important;
     font-weight: 800;
 }
 
 .cinema-nav-link {
     font-weight: 600;
     font-size: 0.92rem;
-    color: var(--text-secondary);
+    color: #94a3b8 !important;
     text-decoration: none;
     padding: 0.5rem 0.9rem;
     border-radius: 8px;
@@ -117,19 +94,19 @@ body {
 }
 
 .cinema-nav-link:hover {
-    color: var(--primary);
-    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--gold) !important;
+    background: rgba(245, 158, 11, 0.1);
 }
 
 .cinema-nav-link.active {
-    color: var(--primary);
-    background-color: rgba(245, 158, 11, 0.15);
+    color: var(--gold) !important;
+    background: rgba(245, 158, 11, 0.15) !important;
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .student-tag {
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     padding: 0.35rem 0.85rem;
     font-size: 0.82rem;
@@ -137,197 +114,43 @@ body {
     font-weight: 600;
 }
 
-/* Cinema Screen */
-.screen-container {
-    perspective: 600px;
-    margin: 1.5rem 0 2rem 0;
-    text-align: center;
+/* Gold CTA Button - Super bright & clear */
+.btn-cinema-gold {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1.5rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.45) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
 }
 
-.screen-bar {
-    height: 10px;
-    background: linear-gradient(90deg, transparent 0%, #38bdf8 50%, transparent 100%);
-    border-radius: 50% 50% 0 0 / 10px 10px 0 0;
-    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.45);
-    margin: 0 auto;
-    width: 85%;
+.btn-cinema-gold:hover:not(:disabled) {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    box-shadow: 0 6px 22px rgba(245, 158, 11, 0.7) !important;
+    transform: translateY(-2px);
+    color: #000000 !important;
 }
 
-.screen-beam {
-    width: 80%;
-    height: 35px;
-    margin: 0 auto;
-    background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, transparent 100%);
-    clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
-}
-
-.screen-text {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    font-weight: 800;
-    color: var(--accent-cyan);
-    margin-top: 0.4rem;
-    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-}
-
-/* Seat Map Styling */
-.seat-map-wrapper {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    padding: 2.2rem 1.8rem;
-    box-shadow: var(--shadow-lg);
-}
-
-.seat-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 9px;
-}
-
-.row-label {
-    width: 24px;
-    text-align: center;
-    font-weight: 800;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.seat-item {
-    width: 40px;
-    height: 40px;
-    border-radius: 9px 9px 4px 4px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: 1.5px solid transparent;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-    outline: none;
-    position: relative;
-    user-select: none;
-}
-
-/* Seat Types in Dark Mode */
-.seat-standard {
-    background-color: var(--seat-std-bg);
-    border-color: var(--seat-std-border);
-    color: var(--seat-std-text);
-}
-
-.seat-standard:hover:not(.seat-sold):not(.seat-held) {
-    transform: translateY(-3px) scale(1.05);
-    background-color: #334155;
-    border-color: var(--accent-cyan);
-    color: #ffffff;
-    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-}
-
-.seat-vip {
-    background-color: var(--vip-bg);
-    border-color: var(--vip-border);
-    color: var(--vip-text);
-}
-
-.seat-vip:hover:not(.seat-sold):not(.seat-held) {
-    transform: translateY(-3px) scale(1.05);
-    background-color: #78350f;
-    border-color: #fbbf24;
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
-}
-
-.seat-sweetbox {
-    background-color: var(--sweetbox-bg);
-    border-color: var(--sweetbox-border);
-    color: var(--sweetbox-text);
-}
-
-.seat-sweetbox:hover:not(.seat-sold):not(.seat-held) {
-    transform: translateY(-3px) scale(1.05);
-    background-color: #831843;
-    border-color: #f472b6;
-    box-shadow: 0 0 14px rgba(236, 72, 153, 0.5);
-}
-
-.seat-selected {
-    background-color: var(--selected-bg) !important;
-    border-color: var(--selected-border) !important;
-    color: var(--selected-text) !important;
-    font-weight: 900 !important;
-    transform: translateY(-2px) scale(1.12);
-    box-shadow: 0 0 18px rgba(245, 158, 11, 0.85) !important;
-    z-index: 2;
-}
-
-.seat-sold {
-    background-color: var(--sold-bg) !important;
-    border-color: var(--sold-border) !important;
-    color: var(--sold-text) !important;
-    cursor: not-allowed !important;
-    opacity: 0.35;
-    text-decoration: line-through;
-}
-
-.seat-held {
-    background-color: var(--held-bg) !important;
-    border-color: var(--held-border) !important;
-    color: var(--held-text) !important;
-    cursor: not-allowed !important;
-    opacity: 0.8;
-}
-
-/* Legend */
-.legend-box {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 1.4rem;
-    padding: 1.1rem;
-    background: #080d16;
-    border-radius: 14px;
-    border: 1px solid var(--border-color);
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.legend-color {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    border-width: 1.5px;
-    border-style: solid;
-}
-
-/* Movie Card */
+/* Movie Card Dark Neon */
 .movie-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 16px;
     overflow: hidden;
     transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
     height: 100%;
-    display: flex;
-    flex-direction: column;
 }
 
 .movie-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
-    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7) !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
 }
 
 .movie-poster-wrap {
@@ -361,14 +184,13 @@ body {
     padding: 0.25rem 0.55rem;
     border-radius: 6px;
     text-transform: uppercase;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
-.age-badge-t18 { background: #ef4444; color: #ffffff; }
-.age-badge-t16 { background: #f97316; color: #ffffff; }
-.age-badge-t13 { background: #eab308; color: #000000; }
-.age-badge-k   { background: #3b82f6; color: #ffffff; }
-.age-badge-p   { background: #10b981; color: #ffffff; }
+.age-badge-t18 { background: #ef4444; color: #fff; }
+.age-badge-t16 { background: #f97316; color: #fff; }
+.age-badge-t13 { background: #eab308; color: #000; }
+.age-badge-k   { background: #3b82f6; color: #fff; }
+.age-badge-p   { background: #10b981; color: #fff; }
 
 .showtime-pill {
     display: inline-flex;
@@ -378,7 +200,7 @@ body {
     border: 1px solid #334155;
     background: #1e293b;
     border-radius: 9px;
-    color: var(--primary);
+    color: var(--gold) !important;
     text-decoration: none;
     font-weight: 800;
     font-size: 0.92rem;
@@ -392,27 +214,165 @@ body {
 }
 
 .showtime-pill:hover {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: #000000;
+    border-color: var(--gold);
+    background: var(--gold);
+    color: #000000 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--primary-glow);
+    box-shadow: 0 4px 12px var(--gold-glow);
 }
 
 .showtime-pill:hover .screen-tag {
     color: #1f2937;
 }
 
-/* Cards & Containers in Dark Mode */
-.card-clean {
+/* Cinema Screen */
+.screen-container {
+    perspective: 600px;
+    margin: 1.5rem 0 2rem 0;
+    text-align: center;
+}
+
+.screen-bar {
+    height: 10px;
+    background: linear-gradient(90deg, transparent 0%, #38bdf8 50%, transparent 100%);
+    border-radius: 50% 50% 0 0 / 10px 10px 0 0;
+    box-shadow: 0 10px 30px var(--cyan-glow);
+    margin: 0 auto;
+    width: 85%;
+}
+
+.screen-beam {
+    width: 80%;
+    height: 35px;
+    margin: 0 auto;
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.15) 0%, transparent 100%);
+    clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+}
+
+.screen-text {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 800;
+    color: var(--cyan);
+    margin-top: 0.4rem;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+/* Seat Map Styling */
+.seat-map-wrapper {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 2.2rem 1.8rem;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+.row-label {
+    width: 24px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.seat-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px 9px 4px 4px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.seat-standard {
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+.seat-standard:hover:not(.seat-sold):not(.seat-held) {
+    transform: translateY(-3px) scale(1.05);
+    background-color: #334155;
+    border-color: var(--cyan);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.seat-vip {
+    background-color: #451a03;
+    border-color: var(--gold);
+    color: #fef3c7;
+}
+
+.seat-vip:hover:not(.seat-sold):not(.seat-held) {
+    transform: translateY(-3px) scale(1.05);
+    background-color: #78350f;
+    border-color: #fbbf24;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+}
+
+.seat-sweetbox {
+    background-color: #500724;
+    border-color: var(--pink);
+    color: #fdf2f8;
+}
+
+.seat-sweetbox:hover:not(.seat-sold):not(.seat-held) {
+    transform: translateY(-3px) scale(1.05);
+    background-color: #831843;
+    border-color: #f472b6;
+    box-shadow: 0 0 14px rgba(236, 72, 153, 0.5);
+}
+
+.seat-selected {
+    background-color: var(--gold) !important;
+    border-color: #fbbf24 !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    transform: translateY(-2px) scale(1.12);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.85) !important;
+    z-index: 2;
+}
+
+.seat-sold {
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
+    color: #475569 !important;
+    cursor: not-allowed !important;
+    opacity: 0.35;
+    text-decoration: line-through;
+}
+
+.seat-held {
+    background-color: #450a0a !important;
+    border-color: #ef4444 !important;
+    color: #fca5a5 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+}
+
+/* Cards & Inputs */
+.card-clean {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 16px;
-    box-shadow: var(--shadow-md);
     color: var(--text-primary);
 }
 
-/* Form Controls Dark */
 .form-control, .form-select {
     background-color: var(--bg-input) !important;
     border-color: #334155 !important;
@@ -421,37 +381,89 @@ body {
 
 .form-control:focus, .form-select:focus {
     background-color: #1e293b !important;
-    border-color: var(--primary) !important;
+    border-color: var(--gold) !important;
     color: #ffffff !important;
     box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
 }
 
-.form-control::placeholder {
-    color: #64748b !important;
-}
-
-/* Primary Cinema Button */
-.btn-cinema-gold {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: #000000 !important;
-    font-weight: 800;
+/* ==========================================================================
+   FLOATING AI ASSISTANT WIDGET (Góc dưới bên phải)
+   ========================================================================== */
+.ai-floating-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #6366f1 100%);
+    color: #ffffff;
     border: none;
-    border-radius: 10px;
-    padding: 0.7rem 1.4rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+    border-radius: 50px;
+    padding: 0.75rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 15px rgba(236, 72, 153, 0.4);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-cinema-gold:hover:not(:disabled) {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.55);
-    transform: translateY(-2px);
+.ai-floating-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(139, 92, 246, 0.7), 0 0 25px rgba(236, 72, 153, 0.6);
+    color: #ffffff;
 }
 
-/* Footer Dark */
-.footer-clean {
-    background: #070a12;
-    border-top: 1px solid var(--border-color);
-    padding: 3rem 0 2rem 0;
-    color: var(--text-secondary);
+.ai-chat-popup {
+    position: fixed;
+    bottom: 90px;
+    right: 25px;
+    width: 420px;
+    max-width: calc(100vw - 40px);
+    height: 580px;
+    max-height: calc(100vh - 120px);
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(139, 92, 246, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.ai-chat-header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ai-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.ai-chat-footer {
+    padding: 0.75rem 1rem;
+    background: rgba(8, 12, 20, 0.9);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
