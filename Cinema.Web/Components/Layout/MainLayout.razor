@@ -1,0 +1,69 @@
+﻿@inherits LayoutComponentBase
+
+<div class="d-flex flex-column min-vh-100">
+    <!-- Top Navigation Bar -->
+    <TopNavBar />
+
+    <!-- Main Content Area -->
+    <main class="flex-grow-1">
+        @Body
+    </main>
+
+    <!-- Floating AI Cinema Assistant (Góc dưới bên phải) -->
+    <Cinema.Web.Components.Controls.AiMovieAssistant />
+
+    <!-- Professional Footer -->
+    <footer class="footer-clean mt-5">
+        <div class="container py-4">
+            <div class="row g-4">
+                <div class="col-lg-5 col-md-6">
+                    <h5 class="fw-bold text-primary mb-2">
+                        <i class="bi bi-film me-2"></i>CineStar Huế Cinema
+                    </h5>
+                    <p class="text-muted small mb-2">
+                        Hệ thống rạp chiếu phim hiện đại chuẩn quốc tế với phòng chiếu Dolby Atmos và IMAX Laser sống động.
+                        Đặt vé trực tuyến nhanh chóng, thanh toán an toàn, chọn ghế thời gian thực.
+                    </p>
+                    <div class="small text-muted">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> 25 Hai Bà Trưng, TP. Huế, Thừa Thiên Huế
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="fw-bold text-white mb-2">Thông Tin Đề Tài</h6>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-1"><strong>Học phần:</strong> Lập trình ứng dụng Web</li>
+                        <li class="mb-1"><strong>Trường:</strong> ĐH Kinh tế - ĐH Huế (HUE)</li>
+                        <li class="mb-1"><strong>Đề tài 14:</strong> Rạp phim: Chọn ghế & Đặt vé</li>
+                        <li class="mb-1"><strong>Độ khó:</strong> ★★★ 3 sao (Mục tiêu 9-10đ)</li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-4 col-md-12">
+                    <div class="card p-3" style="background: rgba(22, 32, 50, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px;">
+                        <h6 class="fw-bold text-white mb-1">
+                            <i class="bi bi-person-badge-fill text-primary me-1"></i>Sinh viên thực hiện
+                        </h6>
+                        <div class="small mb-1"><strong>Họ & Tên:</strong> Nguyễn Viết Mẫn</div>
+                        <div class="small mb-1"><strong>Mã số sinh viên:</strong> 23K4080026</div>
+                        <div class="small text-secondary">
+                            Kiến trúc Clean Architecture 4 tầng: CoreBusiness, UseCases, DataStore (Dapper + SQL Server), StateStore (DI), Web (Blazor Server).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4 border-secondary">
+            <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted">
+                <div>© 2026 CineStar Huế - Đồ án Capstone Công Nghệ Web. All rights reserved.</div>
+                <div>Trạng thái: <span class="badge bg-success-subtle text-success">SQL Server Connected</span></div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div id="blazor-error-ui" class="alert alert-danger position-fixed bottom-0 end-0 m-3 shadow" style="display: none; z-index: 9999;">
+    Đã xảy ra lỗi không mong muốn.
+    <a href="" class="reload btn btn-sm btn-link">Tải lại</a>
+    <a class="dismiss">🗙</a>
+</div>
