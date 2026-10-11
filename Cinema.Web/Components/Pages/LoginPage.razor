@@ -1,0 +1,92 @@
+﻿@page "/login"
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Đăng Nhập Quản Trị Viên - CineStar Huế</PageTitle>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-clean p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="text-primary fs-1 mb-2">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h3 class="fw-bold text-white">Đăng Nhập Quản Trị</h3>
+                    <p class="text-muted small">
+                        Hệ thống xác thực Cookie Authentication cho người quản trị rạp chiếu
+                    </p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-danger small py-2">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>@_errorMessage
+                    </div>
+                }
+
+                <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tài Khoản Quản Trị *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" @bind="_username" placeholder="admin" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Mật Khẩu *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control" @bind="_password" placeholder="admin123" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" style="border-radius: 8px;">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng Nhập
+                    </button>
+                </form>
+
+                <!-- Quick Autofill Box for Grading Demo -->
+                <div class="bg-light p-3 rounded-3 border mt-4">
+                    <div class="small fw-bold text-muted mb-2">
+                        <i class="bi bi-info-circle-fill text-primary me-1"></i>Tài khoản chấm bài mặc định:
+                    </div>
+                    <div class="small text-muted mb-2">
+                        User: <code>admin</code> | Pass: <code>admin123</code>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary w-100" @onclick="AutoFill">
+                        <i class="bi bi-magic me-1"></i>Tự động điền tài khoản mẫu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _username = "";
+    private string _password = "";
+    private string? _errorMessage;
+
+    private void AutoFill()
+    {
+        _username = "admin";
+        _password = "admin123";
+        _errorMessage = null;
+    }
+
+    private async Task HandleLogin()
+    {
+        _errorMessage = null;
+        bool success = await AuthStateProvider.LoginAsync(_username, _password);
+        if (success)
+        {
+            Navigation.NavigateTo("/admin/showtimes");
+        }
+        else
+        {
+            _errorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác (Thử: admin / admin123)";
+        }
+    }
+}
