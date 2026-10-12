@@ -1,0 +1,94 @@
+﻿@page "/lookup"
+@inject IGetBookingDetailsUseCase GetBookingDetailsUseCase
+@inject NavigationManager Navigation
+
+<PageTitle>Tra Cứu Vé Đã Đặt - CineStar Huế</PageTitle>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card card-clean p-4 p-md-5 shadow-sm">
+                <div class="text-center mb-4">
+                    <div class="text-primary fs-1 mb-2">
+                        <i class="bi bi-search-heart"></i>
+                    </div>
+                    <h3 class="fw-bold text-white">Tra Cứu Vé Đã Đặt</h3>
+                    <p class="text-muted small">
+                        Nhập mã đơn vé (VD: <code>BK-20261001-001</code>) để kiểm tra thông tin vé điện tử, thời gian chiếu và vị trí ghế đã chọn.
+                    </p>
+                </div>
+
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" 
+                           placeholder="Nhập mã đơn vé..." 
+                           @bind="_searchRef" 
+                           @bind:event="oninput"
+                           @onkeyup="HandleKeyUp" />
+                    <button class="btn btn-cinema-gold px-4 fw-bold" @onclick="SearchBooking">
+                        Tra Cứu
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-circle me-1"></i>@_errorMessage
+                    </div>
+                }
+
+                <!-- Quick Test Codes -->
+                <div class="p-3 rounded-3 mt-3" style="background: #1e293b; border: 1px solid rgba(255,255,255,0.08);">
+                    <div class="small fw-bold text-muted mb-2">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Mã vé mẫu sẵn có trong CSDL để thử nghiệm nhanh:
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-primary" @onclick='() => SetAndSearch("BK-20261001-001")'>
+                            BK-20261001-001 (Nguyễn Văn An)
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" @onclick='() => SetAndSearch("BK-20261001-002")'>
+                            BK-20261001-002 (Lê Thị Bình)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _searchRef = "";
+    private string? _errorMessage;
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchBooking();
+        }
+    }
+
+    private void SetAndSearch(string sampleRef)
+    {
+        _searchRef = sampleRef;
+        Navigation.NavigateTo($"/confirmation/{sampleRef.Trim()}");
+    }
+
+    private async Task SearchBooking()
+    {
+        if (string.IsNullOrWhiteSpace(_searchRef))
+        {
+            _errorMessage = "Vui lòng nhập mã đơn vé cần tra cứu!";
+            return;
+        }
+
+        var booking = await GetBookingDetailsUseCase.ExecuteByReferenceAsync(_searchRef.Trim());
+        if (booking == null)
+        {
+            _errorMessage = $"Không tìm thấy đơn vé với mã '{_searchRef.Trim()}'. Vui lòng kiểm tra lại!";
+        }
+        else
+        {
+            Navigation.NavigateTo($"/confirmation/{booking.BookingReference}");
+        }
+    }
+}
