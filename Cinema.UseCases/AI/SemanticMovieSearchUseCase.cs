@@ -77,7 +77,7 @@ public class SemanticMovieSearchUseCase : ISemanticMovieSearchUseCase
         var moviesSummary = string.Join("\n", movies.Select(m => 
             $"- ID {m.MovieId}: \"{m.Title}\" (Thể loại: {m.Genre}, Độ tuổi: {m.AgeRating}, Thời lượng: {m.DurationMinutes} phút). Mô tả: {m.Description}"));
 
-        var systemPrompt = "Bạn là Trợ lý AI điện ảnh thông minh của rạp CineStar Huế.\n" +
+        var systemPrompt = "Bạn là Trợ lý AI điện ảnh thông minh của rạp Starlight Cinema Huế.\n" +
             "Danh sách các bộ phim đang chiếu tại rạp:\n" + moviesSummary + "\n\n" +
             "Câu hỏi người dùng: \"" + userQuery + "\"\n\n" +
             "Nhiệm vụ:\n" +
