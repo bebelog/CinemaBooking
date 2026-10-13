@@ -10,53 +10,60 @@
     </main>
 
     <!-- Floating AI Cinema Assistant (Góc dưới bên phải) -->
-    <!-- Trợ lý AI sẽ tích hợp trong Tuần 3 -->
+    <Cinema.Web.Components.Controls.AiMovieAssistant />
 
     <!-- Professional Footer -->
-    <footer class="footer-clean mt-5">
+    <footer class="footer-clean mt-5" style="background: rgba(10, 15, 29, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.08);">
         <div class="container py-4">
             <div class="row g-4">
-                <div class="col-lg-5 col-md-6">
-                    <h5 class="fw-bold text-primary mb-2">
-                        <i class="bi bi-film me-2"></i>CineStar Huế Cinema
+                <!-- Column 1: Brand & Info -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-film text-warning"></i>
+                        <span>Starlight Cinema Huế</span>
                     </h5>
-                    <p class="text-muted small mb-2">
-                        Hệ thống rạp chiếu phim hiện đại chuẩn quốc tế với phòng chiếu Dolby Atmos và IMAX Laser sống động.
-                        Đặt vé trực tuyến nhanh chóng, thanh toán an toàn, chọn ghế thời gian thực.
+                    <p class="small mb-2" style="color: #cbd5e1; line-height: 1.65;">
+                        Hệ thống rạp chiếu phim hiện đại chuẩn quốc tế với phòng chiếu Dolby Atmos và IMAX Laser sống động. Đặt vé trực tuyến nhanh chóng, thanh toán an toàn, chọn ghế thời gian thực.
                     </p>
-                    <div class="small text-muted">
-                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> 25 Hai Bà Trưng, TP. Huế, Thừa Thiên Huế
+                    <div class="small" style="color: #cbd5e1;">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> TP. Huế, Thừa Thiên Huế
                     </div>
                 </div>
 
-                <div class="col-lg-3 col-md-6">
-                    <h6 class="fw-bold text-white mb-2">Thông Tin Đề Tài</h6>
-                    <ul class="list-unstyled small text-muted mb-0">
-                        <li class="mb-1"><strong>Học phần:</strong> Lập trình ứng dụng Web</li>
-                        <li class="mb-1"><strong>Trường:</strong> ĐH Kinh tế - ĐH Huế (HUE)</li>
-                        <li class="mb-1"><strong>Đề tài 14:</strong> Rạp phim: Chọn ghế & Đặt vé</li>
-                        <li class="mb-1"><strong>Độ khó:</strong> ★★★ 3 sao (Mục tiêu 9-10đ)</li>
+                <!-- Column 2: Project Information -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle text-warning"></i>
+                        <span>Thông Tin Đề Tài</span>
+                    </h5>
+                    <ul class="list-unstyled small mb-0" style="color: #cbd5e1; line-height: 1.85;">
+                        <li><strong>Học phần:</strong> Lập trình ứng dụng Web</li>
+                        <li><strong>Trường:</strong> ĐH Kinh tế – ĐH Huế</li>
+                        <li><strong>Đề tài 14:</strong> Rạp phim: Chọn ghế & Đặt vé</li>
+                        <li><strong>Độ khó:</strong> <span class="text-warning fw-bold">★★★ 3 sao</span> (Nâng cao)</li>
                     </ul>
                 </div>
 
+                <!-- Column 3: Student Badge -->
                 <div class="col-lg-4 col-md-12">
-                    <div class="card p-3" style="background: rgba(22, 32, 50, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 12px;">
-                        <h6 class="fw-bold text-white mb-1">
-                            <i class="bi bi-person-badge-fill text-primary me-1"></i>Sinh viên thực hiện
-                        </h6>
-                        <div class="small mb-1"><strong>Họ & Tên:</strong> Nguyễn Viết Mẫn</div>
-                        <div class="small mb-1"><strong>Mã số sinh viên:</strong> 23K4080026</div>
-                        <div class="small text-secondary">
-                            Kiến trúc Clean Architecture 4 tầng: CoreBusiness, UseCases, DataStore (Dapper + SQL Server), StateStore (DI), Web (Blazor Server).
-                        </div>
-                    </div>
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-badge text-warning"></i>
+                        <span>Sinh Viên Thực Hiện</span>
+                    </h5>
+                    <ul class="list-unstyled small mb-2" style="color: #cbd5e1; line-height: 1.85;">
+                        <li><strong>Họ & Tên:</strong> Nguyễn Viết Mẫn</li>
+                        <li><strong>Mã số sinh viên:</strong> 23K4080026</li>
+                    </ul>
+                    <p class="small mb-0" style="color: #cbd5e1; line-height: 1.55;">
+                        Kiến trúc Clean Architecture: CoreBusiness, UseCases, DataStore (Dapper + SQL Server), StateStore, Web (Blazor Server).
+                    </p>
                 </div>
             </div>
 
-            <hr class="my-4 border-secondary">
-            <div class="d-flex flex-wrap justify-content-between align-items-center small text-muted">
-                <div>© 2026 CineStar Huế - Đồ án Capstone Công Nghệ Web. All rights reserved.</div>
-                <div>Trạng thái: <span class="badge bg-success-subtle text-success">SQL Server Connected</span></div>
+            <hr class="my-4" style="border-color: rgba(255, 255, 255, 0.08);">
+            <div class="d-flex flex-wrap justify-content-between align-items-center small" style="color: #cbd5e1;">
+                <div>© 2026 Starlight Cinema Huế – Đồ án Capstone Công Nghệ Web. All rights reserved.</div>
+                <div>Trạng thái: <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-1">SQL Server Connected</span></div>
             </div>
         </div>
     </footer>
@@ -67,4 +74,3 @@
     <a href="" class="reload btn btn-sm btn-link">Tải lại</a>
     <a class="dismiss">🗙</a>
 </div>
-

@@ -3,7 +3,7 @@
 @inject IViewShowtimesUseCase ViewShowtimesUseCase
 @inject NavigationManager Navigation
 
-<PageTitle>CineStar Huế - Phim Đang Chiếu &amp; Lịch Chiếu</PageTitle>
+<PageTitle>Starlight Cinema Huế - Phim Đang Chiếu &amp; Lịch Chiếu</PageTitle>
 
 <!-- Hero Section Dark Cinema -->
 <section class="py-4 py-md-5 mb-4 position-relative overflow-hidden" 
@@ -43,7 +43,7 @@
                             <span class="badge bg-danger px-2 py-1 fw-bold">ĐANG CHIẾU</span>
                             <span class="text-warning fw-bold"><i class="bi bi-star-fill me-1"></i>9.8 / 10</span>
                         </div>
-                        <h6 class="fw-bold text-white mt-2 mb-0">CineStar Huế - Dolby Atmos</h6>
+                        <h6 class="fw-bold text-white mt-2 mb-0">Starlight Cinema Huế - Dolby Atmos</h6>
                         <small class="text-secondary" style="color: #94a3b8 !important;">Phòng chiếu tiêu chuẩn quốc tế</small>
                     </div>
                 </div>
@@ -155,10 +155,20 @@
                                         <div class="d-flex flex-wrap gap-2">
                                             @foreach (var st in movieShowtimes)
                                             {
-                                                <a href="/booking/@st.ShowtimeId" class="showtime-pill">
-                                                    <span>@st.StartTime.ToString("HH:mm")</span>
-                                                    <span class="screen-tag">@st.ScreenType</span>
-                                                </a>
+                                                if (st.StartTime <= DateTime.Now)
+                                                {
+                                                    <div class="showtime-pill is-past" title="@($"Suất chiếu đã bắt đầu lúc {st.StartTime:HH:mm} (Không thể đặt vé)")">
+                                                        <span class="text-decoration-line-through">@st.StartTime.ToString("HH:mm")</span>
+                                                        <span class="screen-tag text-muted"><i class="bi bi-clock-history me-1"></i>Đã chiếu</span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <a href="/booking/@st.ShowtimeId" class="showtime-pill" title="@($"Đặt vé suất {st.StartTime:HH:mm} ({st.ScreenType})")">
+                                                        <span>@st.StartTime.ToString("HH:mm")</span>
+                                                        <span class="screen-tag">@st.ScreenType</span>
+                                                    </a>
+                                                }
                                             }
                                         </div>
                                     }
