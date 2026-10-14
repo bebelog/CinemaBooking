@@ -5,8 +5,10 @@ using Cinema.UseCases.PluginInterfaces.DataStore;
 namespace Cinema.UseCases.Showtimes;
 
 /// <summary>
-/// Thêm suất chiếu mới kèm áp dụng LUẬT 2: Suất chiếu cùng phòng không được chồng giờ
-/// EndTime = StartTime + MovieDuration + 15 phút dọn phòng
+/// Thêm suất chiếu mới kèm áp dụng LUẬT 2:
+/// 1. Chặn xếp lịch trong quá khứ (StartTime > DateTime.Now)
+/// 2. Khung giờ hoạt động rạp (08:00 - 23:30)
+/// 3. Suất chiếu cùng phòng không được chồng giờ (kèm 15 phút dọn phòng vệ sinh)
 /// </summary>
 public class CreateShowtimeUseCase : ICreateShowtimeUseCase
 {
@@ -25,6 +27,12 @@ public class CreateShowtimeUseCase : ICreateShowtimeUseCase
         if (movie == null)
             throw new InvalidOperationException("Phim được chọn không tồn tại trong hệ thống.");
 
+        // LUẬT 2: Chặn tạo suất chiếu trong quá khứ
+        ShowtimeScheduleRule.ValidateNotInPast(newShowtime.StartTime);
+
+        // LUẬT 2: Kiểm tra khung giờ hoạt động của rạp (08:00 - 23:30)
+        ShowtimeScheduleRule.ValidateOperatingHours(newShowtime.StartTime);
+
         // Tự động tính EndTime = StartTime + Duration + 15 phút dọn dẹp vệ sinh phòng chiếu
         newShowtime.EndTime = ShowtimeScheduleRule.CalculateEndTime(newShowtime.StartTime, movie.DurationMinutes);
 
@@ -37,7 +45,7 @@ public class CreateShowtimeUseCase : ICreateShowtimeUseCase
             searchStart,
             searchEnd);
 
-        // LUẬT 2: Validate không chồng giờ
+        // LUẬT 2: Validate không chồng giờ (bao gồm 15 phút dọn phòng vệ sinh)
         ShowtimeScheduleRule.ValidateNoOverlap(newShowtime, existingShowtimes);
 
         return await _showtimeRepository.AddShowtimeAsync(newShowtime);
