@@ -6,7 +6,7 @@ using Cinema.UseCases.PluginInterfaces.StateStore;
 namespace Cinema.UseCases.Bookings;
 
 /// <summary>
-/// Đặt vé xem phim - Thực hiện LUẬT 1 (Tranh chấp ghế) và tạo Booking/Ticket theo Header-Line
+/// Đặt vé xem phim - Thực hiện LUẬT 1 (Tranh chấp ghế, Giới hạn vé & Chống ghế trống đơn) và tạo Booking/Ticket theo Header-Line với Transaction
 /// </summary>
 public class CreateBookingUseCase : ICreateBookingUseCase
 {
@@ -30,24 +30,32 @@ public class CreateBookingUseCase : ICreateBookingUseCase
     public async Task<string> ExecuteAsync(Booking booking, IEnumerable<int> selectedSeatIds, string sessionId)
     {
         var seatIdsList = selectedSeatIds.Distinct().ToList();
-        if (!seatIdsList.Any())
-            throw new ArgumentException("Vui lòng chọn ít nhất một ghế để tiến hành thanh toán!");
 
-        // 1. Kiểm tra sự tồn tại của suất chiếu
+        // 1. Áp dụng LUẬT 1: Giới hạn số lượng ghế đặt (1 - 8 ghế)
+        SeatBookingRule.ValidateSeatCount(seatIdsList);
+
+        // 2. Kiểm tra sự tồn tại của suất chiếu
         var showtime = await _showtimeRepo.GetShowtimeByIdAsync(booking.ShowtimeId);
         if (showtime == null)
             throw new InvalidOperationException("Suất chiếu không tồn tại.");
 
-        // 2. Áp dụng LUẬT 1: Tranh chấp ghế (SeatBookingRule)
+        // Chặn đặt vé cho suất chiếu trong quá khứ / đã bắt đầu
+        if (showtime.StartTime <= DateTime.Now)
+            throw new InvalidOperationException($"Suất chiếu này đã bắt đầu ({showtime.StartTime:HH:mm dd/MM/yyyy}) hoặc đã kết thúc, không thể thực hiện đặt vé.");
+
+        // 3. Áp dụng LUẬT 1: Tranh chấp ghế (Ghế đã bán hoặc đang bị người khác giữ)
         var bookedSeats = await _seatRepo.GetBookedSeatIdsByShowtimeIdAsync(booking.ShowtimeId);
         var heldByOthers = _holdingStore.GetHeldSeatIds(booking.ShowtimeId, excludeSessionId: sessionId);
 
         SeatBookingRule.ValidateSeatsAvailability(seatIdsList, bookedSeats, heldByOthers);
 
-        // 3. Chuẩn bị line items (Ticket) và tính tổng tiền
-        var allAuditoriumSeats = (await _seatRepo.GetSeatsByAuditoriumIdAsync(showtime.AuditoriumId))
-            .ToDictionary(s => s.SeatId);
+        // 4. Áp dụng LUẬT 1: Chống để lại ghế trống đơn lẻ (Single Orphan Seat Rule)
+        var allAuditoriumSeatsList = (await _seatRepo.GetSeatsByAuditoriumIdAsync(showtime.AuditoriumId)).ToList();
+        var allAuditoriumSeats = allAuditoriumSeatsList.ToDictionary(s => s.SeatId);
 
+        SeatBookingRule.ValidateNoSingleOrphanSeat(allAuditoriumSeatsList, seatIdsList, bookedSeats.Concat(heldByOthers));
+
+        // 5. Chuẩn bị line items (Ticket) và tính tổng tiền
         var tickets = new List<Ticket>();
         decimal totalAmount = 0;
         string datePrefix = DateTime.Now.ToString("yyyyMMdd");
@@ -73,10 +81,10 @@ public class CreateBookingUseCase : ICreateBookingUseCase
 
         booking.TotalAmount = totalAmount;
 
-        // 4. Lưu Booking & Tickets vào CSDL trong một Transaction
+        // 6. Lưu Booking & Tickets vào CSDL trong một Transaction
         string createdReference = await _bookingRepo.CreateBookingWithTicketsAsync(booking, tickets);
 
-        // 5. Giải phóng trạng thái giữ ghế
+        // 7. Giải phóng trạng thái giữ ghế
         _holdingStore.ReleaseSeats(booking.ShowtimeId, seatIdsList, sessionId);
 
         return createdReference;
