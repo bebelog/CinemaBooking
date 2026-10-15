@@ -4,7 +4,7 @@
 - **Độ khó**: ★★★ (Tranh chấp tài nguyên đồng thời ở tầng CSDL, Sơ đồ ghế trực quan)
 - **Sinh viên thực hiện**: Nguyễn Viết Mẫn - MSSV: 23K4080026 - Lớp: K46/21.02
 - **Trường**: Trường Đại học Kinh tế, Đại học Huế
-- **GitHub Repository**: [https://github.com/bebelog/CinemaBooking](https://github.com/bebelog/CinemaBooking)
+- **GitHub Repository**: [https://github.com/nguyenman-hue/CinemaBooking](https://github.com/nguyenman-hue/CinemaBooking)
 
 ---
 

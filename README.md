@@ -5,7 +5,7 @@
 **Độ khó:** ★★★ (3 sao - Thang điểm 9.0 - 10.0)  
 **Sinh viên thực hiện:** Nguyễn Viết Mẫn  
 **Mã số sinh viên (MSSV):** 23K4080026 — Lớp: K46/21.02  
-**GitHub Repository:** [https://github.com/bebelog/CinemaBooking](https://github.com/bebelog/CinemaBooking)
+**GitHub Repository:** [https://github.com/nguyenman-hue/CinemaBooking](https://github.com/nguyenman-hue/CinemaBooking)
 
 ---
 
