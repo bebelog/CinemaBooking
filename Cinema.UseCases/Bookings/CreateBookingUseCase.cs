@@ -1,6 +1,7 @@
 ﻿using Cinema.CoreBusiness.Models;
 using Cinema.CoreBusiness.Rules;
 using Cinema.UseCases.PluginInterfaces.DataStore;
+using Cinema.UseCases.PluginInterfaces.Services;
 using Cinema.UseCases.PluginInterfaces.StateStore;
 
 namespace Cinema.UseCases.Bookings;
@@ -14,17 +15,20 @@ public class CreateBookingUseCase : ICreateBookingUseCase
     private readonly ISeatRepository _seatRepo;
     private readonly IShowtimeRepository _showtimeRepo;
     private readonly ISeatHoldingStateStore _holdingStore;
+    private readonly IEmailService? _emailService;
 
     public CreateBookingUseCase(
         IBookingRepository bookingRepo,
         ISeatRepository seatRepo,
         IShowtimeRepository showtimeRepo,
-        ISeatHoldingStateStore holdingStore)
+        ISeatHoldingStateStore holdingStore,
+        IEmailService? emailService = null)
     {
         _bookingRepo = bookingRepo;
         _seatRepo = seatRepo;
         _showtimeRepo = showtimeRepo;
         _holdingStore = holdingStore;
+        _emailService = emailService;
     }
 
     public async Task<string> ExecuteAsync(Booking booking, IEnumerable<int> selectedSeatIds, string sessionId)
@@ -86,6 +90,42 @@ public class CreateBookingUseCase : ICreateBookingUseCase
 
         // 7. Giải phóng trạng thái giữ ghế
         _holdingStore.ReleaseSeats(booking.ShowtimeId, seatIdsList, sessionId);
+
+        // 8. Tự động gửi Email vé điện tử (E-Ticket) kèm Mã Tra Cứu tới Gmail của khách hàng
+        if (_emailService != null && !string.IsNullOrWhiteSpace(booking.CustomerEmail))
+        {
+            var seatNames = tickets.Select(t => allAuditoriumSeats.TryGetValue(t.SeatId, out var s) ? s.SeatDisplayName : $"Ghế #{t.SeatId}").ToList();
+            var recipientEmail = booking.CustomerEmail;
+            var recipientName = string.IsNullOrWhiteSpace(booking.CustomerName) ? "Quý khách" : booking.CustomerName;
+            var movieTitle = showtime.MovieTitle ?? "Phim chiếu rạp";
+            var showtimeStart = showtime.StartTime;
+            var auditoriumName = showtime.AuditoriumName ?? "Phòng chiếu";
+            var screenType = showtime.ScreenType ?? "2D Digital";
+            var bookingTotal = booking.TotalAmount;
+            var paymentMethod = booking.PaymentMethod;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendTicketEmailAsync(
+                        recipientEmail,
+                        recipientName,
+                        createdReference,
+                        movieTitle,
+                        showtimeStart,
+                        auditoriumName,
+                        screenType,
+                        seatNames,
+                        bookingTotal,
+                        paymentMethod);
+                }
+                catch
+                {
+                    // Lỗi đã được ghi log an toàn bên trong IEmailService
+                }
+            });
+        }
 
         return createdReference;
     }

@@ -6,6 +6,7 @@ using Cinema.UseCases.Auditoriums;
 using Cinema.UseCases.Bookings;
 using Cinema.UseCases.Movies;
 using Cinema.UseCases.PluginInterfaces.DataStore;
+using Cinema.UseCases.PluginInterfaces.Services;
 using Cinema.UseCases.PluginInterfaces.StateStore;
 using Cinema.UseCases.Reports;
 using Cinema.UseCases.Seats;
@@ -36,8 +37,9 @@ builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
-// 3. StateStore
+// 3. StateStore & Services
 builder.Services.AddSingleton<ISeatHoldingStateStore, SeatHoldingStateStore>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 // 4. UseCases
 builder.Services.AddTransient<IViewMoviesUseCase, ViewMoviesUseCase>();

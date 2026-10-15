@@ -18,9 +18,16 @@
                     </p>
                 </div>
 
+                <div class="p-3 rounded-3 mb-3 d-flex align-items-center gap-2" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25);">
+                    <i class="bi bi-envelope-paper-fill text-warning fs-5 flex-shrink-0"></i>
+                    <div class="small text-white-50">
+                        <strong class="text-warning">Dành cho khách vãng lai:</strong> Bạn có thể kiểm tra hòm thư Gmail đã điền khi đặt vé để lấy <strong>Mã đơn vé (Booking Code)</strong> hoặc quét mã QR trực tiếp tại rạp.
+                    </div>
+                </div>
+
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" 
-                           placeholder="Nhập mã đơn vé..." 
+                           placeholder="Nhập mã đơn vé (VD: BK-...)..." 
                            @bind="_searchRef" 
                            @bind:event="oninput"
                            @onkeyup="HandleKeyUp" />
