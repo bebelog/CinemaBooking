@@ -80,45 +80,48 @@
                 Tất Cả Suất Chiếu
             </button>
         </div>
-
-    <!-- Search Bar & Quick Genre Filters -->
-    <div class="row g-3 align-items-center mb-4 p-3 rounded-4" 
-         style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); backdrop-filter: blur(8px);">
-        <!-- Search Input with icon -->
-        <div class="col-12 col-lg-7">
-            <div class="position-relative">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-warning fs-6"></i>
-                <input type="text"
-                       class="form-control text-white border-secondary ps-5 pe-5 py-2 rounded-pill shadow-sm"
-                       placeholder="T?m ki?m phim theo t?n, th? lo?i, di?n vi?n, ??o di?n..."
-                       value="@_searchKeyword"
-                       @oninput="HandleSearchInput"
-                       style="background: #0d131f !important; border-color: rgba(255, 255, 255, 0.15) !important;" />
-                @if (!string.IsNullOrWhiteSpace(_searchKeyword))
-                {
-                    <button class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 text-white-50 text-decoration-none p-0"
-                            @onclick="ClearSearch" title="Xóa từ khóa tìm kiếm">
-                        <i class="bi bi-x-circle-fill fs-5 text-secondary"></i>
-                    </button>
-                }
-            </div>
-        </div>
-
-        <!-- Quick Genre Filters -->
-        <div class="col-12 col-lg-5">
-            <div class="d-flex align-items-center gap-1 flex-wrap justify-content-lg-end">
-                <span class="small text-secondary me-1"><i class="bi bi-funnel me-1"></i>Thể loại:</span>
-                @foreach (var genre in _genreCategories)
-                {
-                    <button class="btn btn-sm rounded-pill px-3 py-1 @(_selectedGenre == genre ? "btn-warning text-dark fw-bold shadow-sm" : "btn-outline-secondary text-light")"
-                            style="font-size: 0.8rem; border-color: rgba(255, 255, 255, 0.15);"
-                            @onclick="() => FilterByGenre(genre)">
-                        @genre
-                    </button>
-                }
-            </div>
-        </div>
     </div>
+
+    <!-- Modern Cinema Search Bar & Quick Genre Filters (Full width, sleek glassmorphism) -->
+    <div class="card p-3 p-md-4 mb-4 border-0 shadow-lg" 
+         style="background: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 18px; backdrop-filter: blur(12px);">
+        <div class="row g-3 align-items-center">
+            <!-- Search Input with icon -->
+            <div class="col-12 col-lg-6">
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-warning fs-5"></i>
+                    <input type="text"
+                           class="form-control form-control-lg text-white border-0 ps-5 pe-5 rounded-pill shadow-sm"
+                           placeholder="Tìm tên phim, diễn viên, đạo diễn..."
+                           value="@_searchKeyword"
+                           @oninput="HandleSearchInput"
+                           style="background: rgba(30, 41, 59, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; font-size: 0.95rem;" />
+                    @if (!string.IsNullOrWhiteSpace(_searchKeyword))
+                    {
+                        <button class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 text-white-50 text-decoration-none p-0"
+                                @onclick="ClearSearch" title="Xóa từ khóa tìm kiếm">
+                            <i class="bi bi-x-circle-fill fs-5 text-secondary"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick Genre Filters -->
+            <div class="col-12 col-lg-6">
+                <div class="d-flex align-items-center gap-1 flex-wrap justify-content-lg-end">
+                    <span class="small fw-bold text-secondary me-2"><i class="bi bi-funnel-fill text-warning me-1"></i>Thể loại:</span>
+                    @foreach (var genre in _genreCategories)
+                    {
+                        <button type="button"
+                                class="btn btn-sm rounded-pill px-3 py-1 fw-semibold @(_selectedGenre == genre ? "btn-warning text-dark shadow-sm" : "btn-outline-secondary text-light")"
+                                style="font-size: 0.82rem; border-color: rgba(255, 255, 255, 0.15);"
+                                @onclick="() => FilterByGenre(genre)">
+                            @genre
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (_isLoading)
@@ -154,6 +157,7 @@
             </div>
         </div>
     }
+    else
     {
         <div class="row g-4">
             @foreach (var movie in FilteredMovies)
