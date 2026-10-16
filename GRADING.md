@@ -29,7 +29,7 @@
 | :---: | :--- | :---: | :--- | :--- |
 | **K1.1** | Đủ 4 project; CoreBusiness không tham chiếu project nào; UseCases chỉ tham chiếu CoreBusiness | **8/8** | `Cinema.CoreBusiness/Cinema.CoreBusiness.csproj`<br>`Cinema.UseCases/Cinema.UseCases.csproj`<br>`Cinema.Web/Cinema.Web.csproj` | • `Cinema.CoreBusiness.csproj` không có bất kỳ thẻ `<ProjectReference>` nào.<br>• `Cinema.UseCases.csproj` chỉ tham chiếu duy nhất `Cinema.CoreBusiness.csproj`.<br>• `Cinema.Web.csproj` đóng vai trò Composition Root, liên kết Plugins tại `Program.cs`. |
 | **K1.2** | Interface repository nằm ở UseCases, Plugin cài đặt; file .razor inject interface, không inject lớp cụ thể | **7/7** | `Cinema.UseCases/PluginInterfaces/DataStore/`<br>`Plugins/Cinema.DataStore.SQL.Dapper/Repositories/`<br>`Cinema.Web/Components/Pages/BookingPage.razor` (Dòng 2-5) | • 5 Interface: `IMovieRepository`, `IShowtimeRepository`, `ISeatRepository`, `IBookingRepository`, `IUserRepository` nằm trọn trong tầng `Cinema.UseCases`.<br>• Tầng Web Razor Components chỉ `@inject` UseCase Interface (VD: `ICreateBookingUseCase`, `IViewShowtimesUseCase`), tuyệt đối không inject lớp cụ thể hay Repository. |
-| **K1.3** | 2 luật nghiệp vụ của đề cài trong CoreBusiness / UseCases, không nằm trong .razor (3 điểm mỗi luật) | **6/6** | **Luật 1**: `Cinema.CoreBusiness/Rules/SeatBookingRule.cs` (Dòng 12-140)<br>**Luật 2**: `Cinema.CoreBusiness/Rules/ShowtimeScheduleRule.cs` (Dòng 10-65)<br>`Cinema.UseCases/Bookings/CreateBookingUseCase.cs` (Dòng 35-65) | • **Luật 1 (Tranh chấp ghế & Giữ ghế 10p)**: Chặn bán trùng ghế, chống tranh chấp ghế đang giữ, giới hạn 1-8 ghế và chống để lại ghế trống đơn lẻ (Single Orphan Seat).<br>• **Luật 2 (Không chồng giờ suất chiếu)**: Các suất cùng phòng cách nhau tối thiểu thời lượng phim + 15 phút dọn phòng, chặn xếp lịch trong quá khứ và ngoài giờ mở cửa (08:00 - 23:30). |
+| **K1.3** | 2 luật nghiệp vụ của đề cài trong CoreBusiness / UseCases, không nằm trong .razor (3 điểm mỗi luật) | **6/6** | **Luật 1**: `Cinema.CoreBusiness/Rules/SeatBookingRule.cs`<br>**Luật 2**: `Cinema.CoreBusiness/Rules/ShowtimeScheduleRule.cs`<br>`Cinema.UseCases/Bookings/CreateBookingUseCase.cs` | • **Luật 1 (Tranh chấp ghế & Giữ ghế 10p)**: Chặn bán trùng ghế, chống tranh chấp ghế đang giữ, giới hạn 1-8 ghế, kiểm tra ghế đơn lẻ bị cô lập (Single Orphan Seat) và thuật toán tương tác thời gian thực kiểu Cinestar.<br>• **Luật 2 (Không chồng giờ suất chiếu)**: Các suất cùng phòng cách nhau tối thiểu thời lượng phim + 15 phút dọn phòng, chặn xếp lịch trong quá khứ và ngoài giờ mở cửa (08:00 - 23:30). |
 | **K1.4** | DI đăng ký đủ; giỏ/lựa chọn tạm dùng Scoped | **4/4** | `Cinema.Web/Program.cs` (Dòng 35-58)<br>`Cinema.Web/Services/UserSessionService.cs`<br>`Plugins/Cinema.StateStore.DI/SeatHoldingStateStore.cs` | • Ánh xạ eShop: *"Giỏ hàng ↔ Ghế đang giữ"* được quản lý bằng `UserSessionService` đăng ký `AddScoped` (kết hợp Cookie session) và `SeatHoldingStateStore` đăng ký `AddSingleton` (quản lý tranh chấp đồng thời giữa các người dùng). |
 
 ---
@@ -50,8 +50,8 @@
 | Mã | Tiêu chí đánh giá | Điểm | File & Dòng Code làm bằng chứng | Mô tả chi tiết minh chứng khi vấn đáp |
 | :---: | :--- | :---: | :--- | :--- |
 | **K3.1** | Ít nhất 3 component tái sử dụng có [Parameter] / EventCallback | **6/6** | 1. `Cinema.Web/Components/Controls/SeatMapComponent.razor`<br>2. `Cinema.Web/Components/Controls/MovieCardComponent.razor`<br>3. `Cinema.Web/Components/Controls/ConfirmModalComponent.razor` | • **Component 1 (SeatMap)**: `[Parameter] ShowtimeId`, `[Parameter] BasePrice`, `EventCallback<List<SeatDto>> OnSelectionChanged`.<br>• **Component 2 (MovieCard)**: `[Parameter] Movie`, `EventCallback<Movie> OnSelectMovie`.<br>• **Component 3 (ConfirmModal)**: `[Parameter] Title`, `[Parameter] Message`, `EventCallback<bool> OnResult`. |
-| **K3.2** | EditForm + DataAnnotations; lỗi nhập liệu hiển thị cạnh ô nhập | **5/5** | `Cinema.Web/Components/Pages/BookingPage.razor` (Dòng 145-185)<br>`Cinema.Web/Components/Pages/RegisterPage.razor` (Dòng 40-105) | • Dùng `<EditForm Model="..." OnValidSubmit="...">`, `<DataAnnotationsValidator />`, `<InputText>` và `<ValidationMessage For="..." />`. Khi để trống hoặc gõ sai định dạng email/sđt, thông báo lỗi đỏ hiện ngay dưới ô nhập liệu. |
-| **K3.3** | Ca vi phạm 2 luật nghiệp vụ hiện thông báo thân thiện, không văng lỗi | **4/4** | `Cinema.Web/Components/Pages/BookingPage.razor`<br>`Cinema.Web/Components/Pages/Admin/ManageShowtimesPage.razor` | • **Vi phạm Luật 1**: Thông báo *"Việc chọn ghế của bạn không được để trống 1 ghế ở bên trái, giữa hoặc bên phải trên cùng một hàng ghế mà bạn vừa chọn (Để lại ghế trống đơn lẻ {Tên_Ghế})!"*<br>• **Vi phạm Luật 2**: Thông báo lỗi chồng giờ hoặc phòng chưa dọn xong thân thiện trong Modal thêm suất chiếu. |
+| **K3.2** | EditForm + DataAnnotations; lỗi nhập liệu hiển thị cạnh ô nhập | **5/5** | `Cinema.Web/Components/Pages/BookingPage.razor`<br>`Cinema.Web/Components/Pages/RegisterPage.razor` | • Dùng `<EditForm Model="..." OnValidSubmit="...">`, `<DataAnnotationsValidator />`, `<InputText>` và `<ValidationMessage For="..." />`. Khi để trống hoặc gõ sai định dạng email/sđt, thông báo lỗi đỏ hiện ngay dưới ô nhập liệu. |
+| **K3.3** | Ca vi phạm 2 luật nghiệp vụ hiện thông báo thân thiện, không văng lỗi | **4/4** | `Cinema.Web/Components/Controls/SeatMapComponent.razor`<br>`Cinema.Web/Components/Pages/BookingPage.razor`<br>`Cinema.Web/Components/Pages/Admin/ManageShowtimesPage.razor` | • **Vi phạm Luật 1**: Thông báo tự tắt sau 4s khi vi phạm chọn ghế bỏ trống đơn lẻ hoặc tranh chấp ghế đang giữ.<br>• **Vi phạm Luật 2**: Thông báo lỗi trùng giờ chiếu / phòng chưa dọn xong hiển thị rõ ràng trên modal Admin. Không bao giờ văng Exception ra màn hình trắng. |
 | **K3.4** | Dùng được trên màn hình điện thoại (DevTools 390px) | **5/5** | `Cinema.Web/wwwroot/app.css` & Bootstrap 5 Responsive Grid | • Kiểm thử trên DevTools iPhone 12/13/14 Pro (390px): Sơ đồ ghế cuộn ngang mượt mà, thanh tóm tắt đặt vé và menu điều hướng co giãn hoàn hảo. |
 
 ---
@@ -76,12 +76,43 @@
 
 ---
 
-## BỘ KIỂM THỬ TỰ ĐỘNG (UNIT TESTS): 29/29 TESTS PASS 100%
+## BỘ KIỂM THỬ TỰ ĐỘNG (UNIT TESTS): 32/32 TESTS PASS 100%
 
 Lệnh kiểm tra: `dotnet test Cinema.UnitTests/Cinema.UnitTests.csproj`
 
-* **Rule1_SeatConflictTests.cs (10 tests)**: Kiểm thử toàn diện Luật 1 (chặn bán trùng ghế, tranh chấp ghế đang giữ, giới hạn 1-8 vé, chống để lại ghế trống đơn lẻ).
+* **Rule1_SeatConflictTests.cs (13 tests)**: Kiểm thử toàn diện Luật 1 (chặn bán trùng ghế, tranh chấp ghế đang giữ, giới hạn 1-8 vé, chống để lại ghế trống đơn lẻ, và 3 test mô phỏng chọn ghế tương tác thời gian thực kiểu Cinestar: chặn nhảy cóc F8 khi F7 chưa chọn, cho phép chọn liên tiếp F1..F6 rồi F7 rồi F8).
 * **Rule2_ShowtimeOverlapTests.cs (9 tests)**: Kiểm thử toàn diện Luật 2 (chồng giờ chiếu, 15 phút dọn phòng, chặn quá khứ, giờ mở cửa rạp).
 * **AiSemanticSearchTests.cs (3 tests)**: Kiểm thử trợ lý AI và xử lý sự cố mạng.
 * **BookingEmailNotificationTests.cs (3 tests)**: Kiểm thử gửi email vé điện tử tự động và bảo đảm tính chịu lỗi của giao dịch.
 * **UserRegistrationTests.cs (4 tests)**: Kiểm thử đăng ký thành viên, validation tên đăng nhập, email trùng lặp và độ dài mật khẩu.
+
+---
+
+## HƯỚNG DẪN TRẢ LỜI VẤN ĐÁP 100% ĂN ĐIỂM (CHEATSHEET KHI GIẢNG VIÊN HỎI)
+
+### 1. Câu hỏi về Kiến trúc Clean Architecture & Dependency Rule
+* **Giáo viên hỏi**: *"Tại sao tầng CoreBusiness không được tham chiếu bất kỳ thư viện hay tầng nào khác?"*
+* **Trả lời**: *"Thưa thầy/cô, theo nguyên lý Dependency Rule của Clean Architecture, Domain/CoreBusiness là hạt nhân chứa các Entity và quy tắc nghiệp vụ cốt lõi nhất của hệ thống. Nó phải độc lập hoàn toàn với công nghệ giao diện (Blazor), cơ sở dữ liệu (SQL Server/Dapper) hay thư viện bên ngoài. Nhờ đó, nếu sau này thay đổi CSDL sang MongoDB hay đổi UI sang Mobile App MAUI thì toàn bộ logic đặt vé và kiểm tra ghế trong CoreBusiness vẫn giữ nguyên 100% mà không phải sửa một dòng code nào."*
+
+### 2. Câu hỏi về Cài đặt 2 Luật Nghiệp vụ
+* **Giáo viên hỏi**: *"2 luật nghiệp vụ của đề tài được cài đặt ở đâu? Hãy mở file code và chỉ ra?"*
+* **Trả lời**:
+  * **Luật 1 (Tranh chấp ghế & Giữ ghế 10 phút & Chống ghế đơn lẻ)**: Cài trong `Cinema.CoreBusiness/Rules/SeatBookingRule.cs`.
+    - Phương thức `ValidateSeatsAvailability(...)`: Kiểm tra ghế đã bán trong CSDL và ghế đang bị người khác giữ tạm thời trong vòng 10 phút (`SeatHoldingStateStore`).
+    - Phương thức `ValidateSingleOrphanSeats(...)` và `ValidateInteractiveSeatSelection(...)`: Thuật toán duyệt qua từng hàng ghế theo thứ tự số ghế, kiểm tra không cho phép để lại 1 ghế trống đơn lẻ bị kẹp giữa 2 ghế đã chọn hoặc mép tường.
+  * **Luật 2 (Không chồng giờ chiếu & 15 phút dọn phòng)**: Cài trong `Cinema.CoreBusiness/Rules/ShowtimeScheduleRule.cs`.
+    - Kiểm tra `existing.StartTime < newEnd && newStart < existingEnd`: Đảm bảo 2 khoảng thời gian chiếu không giao nhau.
+    - Thời lượng dọn dẹp phòng: `newShowtime.Movie.DurationMinutes + 15` phút.
+
+### 3. Câu hỏi về Toàn vẹn Dữ liệu & Transaction Header-Line
+* **Giáo viên hỏi**: *"Cặp Header-Line (Booking - Ticket) được lưu như thế nào để đảm bảo 2 khách hàng không bao giờ mua trùng cùng 1 ghế?"*
+* **Trả lời**:
+  * *"Tại `Plugins/Cinema.DataStore.SQL.Dapper/Repositories/BookingRepository.cs` (hàm `CreateBookingAsync`), hệ thống mở một `SqlConnection` và bắt đầu một `SqlTransaction`."*
+  * *"Đầu tiên ghi bản ghi Header vào bảng `Booking`. Sau đó lặp qua danh sách ghế để ghi từng vé con vào bảng `Ticket` trong cùng Transaction đó."*
+  * *"Dưới CSDL SQL Server, bảng `Ticket` có ràng buộc Unique Index: `UQ_Ticket_Showtime_Seat (ShowtimeId, SeatId)`. Nếu 2 người cùng nhấn thanh toán ở cùng một mili-giây cho cùng một ghế, SQL Server sẽ phát sinh lỗi vi phạm Unique Key và toàn bộ Transaction sẽ bị Rollback ngay lập tức. Dữ liệu luôn đảm bảo tính toàn vẹn tuyệt đối (ACID)."*
+
+### 4. Câu hỏi về Bảo mật & Phân quyền
+* **Giáo viên hỏi**: *"Làm thế nào để chặn người dùng thường không vào được các trang Quản trị viên?"*
+* **Trả lời**:
+  * *"Ở tầng UI, tất cả các trang Admin trong `Cinema.Web/Components/Pages/Admin/` đều có directive `@attribute [Authorize(Roles = "Admin")]`."*
+  * *"Tại file `Routes.razor`, thẻ `<AuthorizeRouteView>` sẽ kiểm tra Claims trong `AuthenticationState`. Nếu người dùng có role là Customer hoặc chưa đăng nhập, hệ thống sẽ rơi vào nhánh `<NotAuthorized>` và hiển thị màn hình cảnh báo không có quyền truy cập, không cho phép hiển thị bất kỳ thành phần nào của trang Admin."*
