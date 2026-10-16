@@ -84,44 +84,13 @@
                         </select>
                     </div>
 
-                    <!-- Date Selection -->
                     <div class="mb-3">
-                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Ngày Chiếu *</label>
-                        <input type="date" class="form-control form-control-sm" 
-                               value="@_selectedDateString" 
-                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
-                               @onchange="OnDateChanged" required />
-                    </div>
-
-                    <!-- 24-Hour Time Selection (Hour & Minute) -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Giờ Bắt Đầu (Định dạng 24h: 08:00 – 23:30) *</label>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-dark border-secondary text-muted" style="border-color: rgba(255,255,255,0.15) !important;">Giờ</span>
-                                    <select class="form-select form-select-sm" @bind="_selectedHour">
-                                        @for (int h = 8; h <= 23; h++)
-                                        {
-                                            <option value="@h">@($"{h:D2} giờ")</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-dark border-secondary text-muted" style="border-color: rgba(255,255,255,0.15) !important;">Phút</span>
-                                    <select class="form-select form-select-sm" @bind="_selectedMinute">
-                                        @for (int m = 0; m < 60; m += 5)
-                                        {
-                                            <option value="@m">@($"{m:D2} phút")</option>
-                                        }
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                        <label class="form-label small fw-bold" style="color: #cbd5e1;">Thời Gian Bắt Đầu *</label>
+                        <input type="datetime-local" class="form-control form-control-sm" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" 
+                               value="@_startTimeString" 
+                               @onchange="OnStartTimeChanged" required />
                         <small class="text-muted d-block mt-1">
-                            <i class="bi bi-clock me-1 text-warning"></i>Khung giờ 24h từ 08:00 đến 23:30. Suất kế tiếp cách tối thiểu 15 phút dọn phòng.
+                            Giờ chiếu kế tiếp cần cách tối thiểu 15 phút dọn phòng.
                         </small>
                     </div>
 
@@ -237,10 +206,6 @@
     private string? _successMessage;
     private string? _errorMessage;
 
-    private string _selectedDateString = DateTime.Today.ToString("yyyy-MM-dd");
-    private int _selectedHour = 14;
-    private int _selectedMinute = 0;
-
     private Showtime _newShowtime = new()
     {
         MovieId = 0,
@@ -249,32 +214,20 @@
         BasePrice = 85000
     };
 
+    private string _startTimeString = DateTime.Now.AddHours(2).ToString("yyyy-MM-ddTHH:00");
+
     protected override async Task OnInitializedAsync()
     {
-        var defaultTime = DateTime.Now.AddHours(2);
-        if (defaultTime.Hour < 8) defaultTime = DateTime.Today.AddHours(9);
-        if (defaultTime.Hour > 23) defaultTime = DateTime.Today.AddHours(21);
-        
-        _selectedDateString = defaultTime.ToString("yyyy-MM-dd");
-        _selectedHour = defaultTime.Hour;
-        _selectedMinute = (defaultTime.Minute / 5) * 5;
-        UpdateShowtimeStart();
-
         await LoadDataAsync();
     }
 
-    private void UpdateShowtimeStart()
+    private void OnStartTimeChanged(ChangeEventArgs e)
     {
-        if (DateTime.TryParse(_selectedDateString, out var date))
+        _startTimeString = e.Value?.ToString() ?? "";
+        if (DateTime.TryParse(_startTimeString, out var dt))
         {
-            _newShowtime.StartTime = new DateTime(date.Year, date.Month, date.Day, _selectedHour, _selectedMinute, 0);
+            _newShowtime.StartTime = dt;
         }
-    }
-
-    private void OnDateChanged(ChangeEventArgs e)
-    {
-        _selectedDateString = e.Value?.ToString() ?? DateTime.Today.ToString("yyyy-MM-dd");
-        UpdateShowtimeStart();
     }
 
     private async Task LoadDataAsync()
@@ -302,8 +255,6 @@
 
     private async Task HandleCreateShowtime()
     {
-        UpdateShowtimeStart();
-
         if (_newShowtime.MovieId <= 0 || _newShowtime.AuditoriumId <= 0)
         {
             _errorMessage = "Vui lòng chọn đầy đủ Phim và Phòng chiếu!";
@@ -317,7 +268,7 @@
         try
         {
             int newId = await CreateShowtimeUseCase.ExecuteAsync(_newShowtime);
-            _successMessage = $"Thêm thành công suất chiếu mới ID #{newId} lúc {_newShowtime.StartTime:HH:mm dd/MM/yyyy} (Áp dụng đúng LUẬT 2: Giờ chiếu không bị chồng giờ)!";
+            _successMessage = $"Thêm thành công suất chiếu mới ID #{newId} (Áp dụng đúng LUẬT 2: Giờ chiếu không bị chồng giờ)!";
             await LoadDataAsync();
         }
         catch (ShowtimeOverlapException ex)
