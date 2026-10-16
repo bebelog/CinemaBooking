@@ -576,7 +576,26 @@ html, body {
 }
 
 .font-monospace {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Selected Seats Badges in Summary */
+.badge-seat-standard {
+    background: rgba(56, 189, 248, 0.18) !important;
     color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+}
+
+.badge-seat-vip {
+    background: rgba(245, 158, 11, 0.22) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.55) !important;
+}
+
+.badge-seat-sweetbox {
+    background: rgba(236, 72, 153, 0.22) !important;
+    color: #f472b6 !important;
+    border: 1px solid rgba(236, 72, 153, 0.55) !important;
 }
 
 code {

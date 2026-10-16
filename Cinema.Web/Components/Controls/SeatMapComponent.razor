@@ -113,13 +113,13 @@
                 }
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="L?m m?i t?nh tr?ng gh?">
-                    <i class="bi bi-arrow-clockwise me-1"></i>L?m m?i
+                <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="Làm mới tình trạng ghế">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
                 </button>
                 @if (_seats.Any(s => s.IsHeldByOther))
                 {
-                    <button class="btn btn-outline-warning btn-sm" @onclick="HandleResetAllHoldsForDemo" title="Gi?i ph?ng to?n b? gh? ?ang b? gi? t?m ?? ti?n ki?m th? nhanh">
-                        <i class="bi bi-unlock-fill me-1"></i>M? kh?a gh? t?m (Test/Demo)
+                    <button class="btn btn-outline-warning btn-sm fw-semibold" @onclick="HandleResetAllHoldsForDemo" title="Mở khóa tất cả ghế đang bị giữ tạm để tiện kiểm thử nhanh">
+                        <i class="bi bi-unlock-fill me-1"></i>Mở khóa ghế tạm (Test/Demo)
                     </button>
                 }
             </div>
@@ -127,9 +127,9 @@
 
         @if (_seats.Any(s => s.IsHeldByOther))
         {
-            <div class="mt-2 p-2 rounded-2 small d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
-                <i class="bi bi-info-circle-fill fs-6 text-danger"></i>
-                <span>Gh? c? bi?u t??ng ?? ?ang ???c phi?n/kh?ch kh?c gi? t?m th?i trong v?ng t?i ?a 10 ph?t (Lu?t 1). Gh? s? t? m? sau 10 ph?t, khi kh?ch h?y/??ng xu?t, ho?c b?m n?t <strong>M? kh?a gh? t?m (Test/Demo)</strong> ?? x?a ngay khi ki?m th?.</span>
+            <div class="mt-2 p-2 rounded-2 small d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;">
+                <i class="bi bi-info-circle-fill fs-6 text-danger flex-shrink-0"></i>
+                <span>Ghế có biểu tượng 🔒 đang được người khác giữ tạm thời trong tối đa 10 phút (Luật 1). Ghế sẽ tự mở sau 10 phút, khi khách hủy/đăng xuất, hoặc bấm nút <strong>Mở khóa ghế tạm (Test/Demo)</strong> để xóa ngay khi kiểm thử.</span>
             </div>
         }
     }
