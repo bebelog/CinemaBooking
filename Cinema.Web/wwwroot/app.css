@@ -322,9 +322,9 @@ html, body {
 }
 
 .seat-standard {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
-    color: #0f172a;
+    background-color: #1e293b;
+    border-color: #475569;
+    color: #e2e8f0;
     font-weight: 700;
 }
 
@@ -337,9 +337,9 @@ html, body {
 }
 
 .seat-vip {
-    background-color: #f97316;
-    border-color: #ea580c;
-    color: #ffffff;
+    background-color: #2a1708;
+    border-color: #f59e0b;
+    color: #fbbf24;
     font-weight: 700;
 }
 
@@ -351,9 +351,9 @@ html, body {
 }
 
 .seat-sweetbox {
-    background-color: #ec4899;
-    border-color: #db2777;
-    color: #ffffff;
+    background-color: #3b0720;
+    border-color: #ec4899;
+    color: #f472b6;
     font-weight: 700;
 }
 
@@ -779,29 +779,55 @@ code {
 }
 
 
-/* =================================================================
-   Seat Legend Indicators (Minimalist Image 1 Style)
-   ================================================================= */
-.seat-legend-indicator {
+/* ===============================================================
+   Seat Legend Indicators (Khop 100% voi So Do Ghe)
+   =============================================================== */
+.seat-mini-box {
     display: inline-block;
-    width: 32px;
+    width: 24px;
     height: 18px;
     border-radius: 4px;
     flex-shrink: 0;
+    vertical-align: middle;
 }
 
-.seat-legend-standard {
-    background-color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+.seat-mini-standard {
+    background-color: #1e293b !important;
+    border: 1.5px solid #475569 !important;
 }
 
-.seat-legend-selected {
+.seat-mini-vip {
+    background-color: #2a1708 !important;
+    border: 1.5px solid #f59e0b !important;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.35) !important;
+}
+
+.seat-mini-sweetbox {
+    background-color: #3b0720 !important;
+    border: 1.5px solid #ec4899 !important;
+    box-shadow: 0 0 6px rgba(236, 72, 153, 0.35) !important;
+}
+
+.seat-mini-selected {
     background-color: #facc15 !important;
-    border: 1px solid #eab308 !important;
+    border: 1.5px solid #eab308 !important;
     box-shadow: 0 0 10px rgba(250, 204, 21, 0.6) !important;
 }
 
-.seat-legend-sold {
-    background-color: #48566a !important;
-    border: 1px solid #334155 !important;
+.seat-mini-sold {
+    background-color: rgba(30, 41, 59, 0.45) !important;
+    border: 1.5px solid rgba(71, 85, 105, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.seat-mini-sold::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #94a3b8;
+    transform: translateY(-50%);
 }
