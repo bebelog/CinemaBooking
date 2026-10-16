@@ -27,7 +27,7 @@
 
 | Mã | Tiêu chí đánh giá | Điểm | File & Dòng Code làm bằng chứng | Mô tả chi tiết minh chứng khi vấn đáp |
 | :---: | :--- | :---: | :--- | :--- |
-| **K1.1** | Đủ 4 project; CoreBusiness không tham chiếu project nào; UseCases chỉ tham chiếu CoreBusiness | **8/8** | `Cinema.CoreBusiness/Cinema.CoreBusiness.csproj`<br>`Cinema.UseCases/Cinema.UseCases.csproj`<br>`Cinema.Web/Cinema.Web.csproj` | • `Cinema.CoreBusiness.csproj` không có bất kỳ thẻ `<ProjectReference>` nào.<br>• `Cinema.UseCases.csproj` chỉ tham chiếu duy nhất `Cinema.CoreBusiness.csproj`.<br>• `Cinema.Web.csproj` đóng vai trò Composition Root, liên kết Plugins tại `Program.cs`. |
+| **K1.1** | Đủ 4 project; CoreBusiness không tham chiếu project nào; UseCases chỉ tham chiếu CoreBusiness | **8/8** | `Cinema.CoreBusiness/Cinema.CoreBusiness.csproj`<br>`Cinema.UseCases/Cinema.UseCases.csproj`<br>`Cinema.Web/Cinema.Web.csproj` | • Cấu trúc chuẩn mực 4 project theo mẫu eShop: `CoreBusiness`, `UseCases`, `Web`, `Plugins`.<br>• `Cinema.CoreBusiness.csproj` không có bất kỳ thẻ `<ProjectReference>` nào.<br>• `Cinema.UseCases.csproj` chỉ tham chiếu duy nhất `Cinema.CoreBusiness.csproj`.<br>• `Cinema.Web.csproj` đóng vai trò Composition Root, liên kết Plugins tại `Program.cs`. |
 | **K1.2** | Interface repository nằm ở UseCases, Plugin cài đặt; file .razor inject interface, không inject lớp cụ thể | **7/7** | `Cinema.UseCases/PluginInterfaces/DataStore/`<br>`Plugins/Cinema.DataStore.SQL.Dapper/Repositories/`<br>`Cinema.Web/Components/Pages/BookingPage.razor` (Dòng 2-5) | • 5 Interface: `IMovieRepository`, `IShowtimeRepository`, `ISeatRepository`, `IBookingRepository`, `IUserRepository` nằm trọn trong tầng `Cinema.UseCases`.<br>• Tầng Web Razor Components chỉ `@inject` UseCase Interface (VD: `ICreateBookingUseCase`, `IViewShowtimesUseCase`), tuyệt đối không inject lớp cụ thể hay Repository. |
 | **K1.3** | 2 luật nghiệp vụ của đề cài trong CoreBusiness / UseCases, không nằm trong .razor (3 điểm mỗi luật) | **6/6** | **Luật 1**: `Cinema.CoreBusiness/Rules/SeatBookingRule.cs`<br>**Luật 2**: `Cinema.CoreBusiness/Rules/ShowtimeScheduleRule.cs`<br>`Cinema.UseCases/Bookings/CreateBookingUseCase.cs` | • **Luật 1 (Tranh chấp ghế & Giữ ghế 10p)**: Chặn bán trùng ghế, chống tranh chấp ghế đang giữ, giới hạn 1-8 ghế, kiểm tra ghế đơn lẻ bị cô lập (Single Orphan Seat) và thuật toán tương tác thời gian thực kiểu Cinestar.<br>• **Luật 2 (Không chồng giờ suất chiếu)**: Các suất cùng phòng cách nhau tối thiểu thời lượng phim + 15 phút dọn phòng, chặn xếp lịch trong quá khứ và ngoài giờ mở cửa (08:00 - 23:30). |
 | **K1.4** | DI đăng ký đủ; giỏ/lựa chọn tạm dùng Scoped | **4/4** | `Cinema.Web/Program.cs` (Dòng 35-58)<br>`Cinema.Web/Services/UserSessionService.cs`<br>`Plugins/Cinema.StateStore.DI/SeatHoldingStateStore.cs` | • Ánh xạ eShop: *"Giỏ hàng ↔ Ghế đang giữ"* được quản lý bằng `UserSessionService` đăng ký `AddScoped` (kết hợp Cookie session) và `SeatHoldingStateStore` đăng ký `AddSingleton` (quản lý tranh chấp đồng thời giữa các người dùng). |
@@ -73,18 +73,6 @@
 | **K5.1** | Use Case, Class, Sequence (PlantUML) khớp tên lớp và luồng trong code | **6/6** | `docs/uml/usecase_diagram.puml`<br>`docs/uml/class_diagram.puml`<br>`docs/uml/sequence_diagram.puml` | • Đầy đủ 3 sơ đồ PlantUML chuẩn: Use Case (2 Actor: Customer & Admin), Class Diagram (khớp 100% tên lớp 4 tầng Clean Architecture), Sequence Diagram (chi tiết luồng giao dịch Header-Line với Transaction và giữ ghế). |
 | **K5.2** | Vấn đáp: mỗi thành viên chỉ đúng dòng cài luật và giải thích Dependency Rule | **6/6** | Xem K1.3 và phần hướng dẫn vấn đáp bên dưới | • Nắm vững vị trí code: Luật 1 tại `SeatBookingRule.cs`, Luật 2 tại `ShowtimeScheduleRule.cs`, giải thích rõ Dependency Rule: Tầng trong không phụ thuộc tầng ngoài. |
 | **K5.3** | Mọi thành viên có commit, rải trên ít nhất 3 tuần | **3/3** | `git log --date=short`<br>`git shortlog -sn` | • Lịch sử commit rải đều qua 3 tuần: Tuần 05 (Sprint 1), Tuần 06 (Sprint 2), Tuần 07 (Bảo vệ), với hơn 25 commit có ý nghĩa rõ ràng. |
-
----
-
-## BỘ KIỂM THỬ TỰ ĐỘNG (UNIT TESTS): 32/32 TESTS PASS 100%
-
-Lệnh kiểm tra: `dotnet test Cinema.UnitTests/Cinema.UnitTests.csproj`
-
-* **Rule1_SeatConflictTests.cs (13 tests)**: Kiểm thử toàn diện Luật 1 (chặn bán trùng ghế, tranh chấp ghế đang giữ, giới hạn 1-8 vé, chống để lại ghế trống đơn lẻ, và 3 test mô phỏng chọn ghế tương tác thời gian thực kiểu Cinestar: chặn nhảy cóc F8 khi F7 chưa chọn, cho phép chọn liên tiếp F1..F6 rồi F7 rồi F8).
-* **Rule2_ShowtimeOverlapTests.cs (9 tests)**: Kiểm thử toàn diện Luật 2 (chồng giờ chiếu, 15 phút dọn phòng, chặn quá khứ, giờ mở cửa rạp).
-* **AiSemanticSearchTests.cs (3 tests)**: Kiểm thử trợ lý AI và xử lý sự cố mạng.
-* **BookingEmailNotificationTests.cs (3 tests)**: Kiểm thử gửi email vé điện tử tự động và bảo đảm tính chịu lỗi của giao dịch.
-* **UserRegistrationTests.cs (4 tests)**: Kiểm thử đăng ký thành viên, validation tên đăng nhập, email trùng lặp và độ dài mật khẩu.
 
 ---
 
