@@ -95,6 +95,46 @@
             }
         </div>
 
+        <!-- Bang Chu Thich Loai Ghe & Trang Thai -->
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 gap-md-4 py-2 px-3 mb-4 rounded-3" 
+             style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <!-- Ghe Thuong -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-standard">1</span>
+                <span class="small" style="color: #cbd5e1; font-size: 0.8rem;">Ghế Thường</span>
+            </div>
+
+            <!-- Ghe VIP -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-vip">2</span>
+                <span class="small text-warning" style="font-size: 0.8rem;">Ghế VIP</span>
+            </div>
+
+            <!-- Ghe Doi (Sweetbox) -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-sweetbox">3</span>
+                <span class="small" style="color: #f472b6; font-size: 0.8rem;">Ghế Đôi</span>
+            </div>
+
+            <!-- Ghe Dang Chon -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-selected">✓</span>
+                <span class="small text-success fw-bold" style="font-size: 0.8rem;">Đang Chọn</span>
+            </div>
+
+            <!-- Ghe Giu Cho 10 Phut -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-held">🔒</span>
+                <span class="small" style="color: #fca5a5; font-size: 0.8rem;">Đang Giữ Chỗ</span>
+            </div>
+
+            <!-- Ghe Da Ban -->
+            <div class="d-flex align-items-center gap-2">
+                <span class="seat-legend-box seat-legend-sold">✕</span>
+                <span class="small text-muted" style="font-size: 0.8rem; text-decoration: line-through;">Đã Bán</span>
+            </div>
+        </div>
+
         <!-- Real-time selected seats summary -->
         <div class="d-flex justify-content-between align-items-center p-3 rounded-3" 
              style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(51, 65, 85, 0.5);">
@@ -106,32 +146,18 @@
                 }
                 else
                 {
-                    <span class="fw-bold text-warning">
+                    <span class="fw-bold text-success">
                         @string.Join(", ", _seats.Where(s => _selectedSeatIds.Contains(s.SeatId)).Select(s => s.SeatDisplayName))
                     </span>
-                    <span class="badge bg-warning text-dark ms-2 fw-bold">@_selectedSeatIds.Count ghế</span>
+                    <span class="badge bg-success ms-2 fw-bold">@_selectedSeatIds.Count ghế</span>
                 }
             </div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="Làm mới tình trạng ghế">
                     <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
                 </button>
-                @if (_seats.Any(s => s.IsHeldByOther))
-                {
-                    <button class="btn btn-outline-warning btn-sm fw-semibold" @onclick="HandleResetAllHoldsForDemo" title="Mở khóa tất cả ghế đang bị giữ tạm để tiện kiểm thử nhanh">
-                        <i class="bi bi-unlock-fill me-1"></i>Mở khóa ghế tạm (Test/Demo)
-                    </button>
-                }
             </div>
         </div>
-
-        @if (_seats.Any(s => s.IsHeldByOther))
-        {
-            <div class="mt-2 p-2 rounded-2 small d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5;">
-                <i class="bi bi-info-circle-fill fs-6 text-danger flex-shrink-0"></i>
-                <span>Ghế có biểu tượng 🔒 đang được người khác giữ tạm thời trong tối đa 10 phút (Luật 1). Ghế sẽ tự mở sau 10 phút, khi khách hủy/đăng xuất, hoặc bấm nút <strong>Mở khóa ghế tạm (Test/Demo)</strong> để xóa ngay khi kiểm thử.</span>
-            </div>
-        }
     }
 </div>
 
@@ -417,16 +443,6 @@
             await NotifyParentSelectionAsync();
             await LoadSeatsAsync(notifyParent: true);
         }
-    }
-
-    private async Task HandleResetAllHoldsForDemo()
-    {
-        HoldingStore.ClearAllHolds();
-        _selectedSeatIds.Clear();
-        StopTimer();
-        await NotifyParentSelectionAsync();
-        await LoadSeatsAsync(notifyParent: true);
-        StateHasChanged();
     }
 
     private async Task NotifyParentSelectionAsync()
