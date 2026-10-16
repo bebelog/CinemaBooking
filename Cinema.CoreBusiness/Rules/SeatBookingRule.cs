@@ -136,4 +136,75 @@ public static class SeatBookingRule
             }
         }
     }
+
+    /// <summary>
+    /// LUẬT CHỐNG GHẾ TRỐNG TRONG LÚC CHỌN TRỰC TIẾP TRÊN SƠ ĐỒ (Interactive Seat Selection Rule)
+    /// 1. Chặn ngay lập tức hành vi nhảy cóc tạo ra 1 ghế trống đơn lẻ bị kẹp ở giữa (giữa 2 ghế đã mua/đã chọn).
+    ///    Ví dụ: F1-F6 đã có, nếu chưa chọn F7 mà chọn F8 thì chặn F8 vì bỏ trống F7 ở giữa.
+    /// 2. Cho phép người dùng chọn ghế liền kề (như F7 nối tiếp F6) để có thể click tiếp F8 và chọn trọn vẹn cả dãy.
+    /// </summary>
+    public static void ValidateInteractiveSeatSelection(
+        IEnumerable<Seat> allSeatsInAuditorium,
+        IEnumerable<int> candidateSeatIds,
+        IEnumerable<int> alreadyUnavailableSeatIds)
+    {
+        var candidateSet = new HashSet<int>(candidateSeatIds);
+        var unavailableSet = new HashSet<int>(alreadyUnavailableSeatIds);
+
+        var seatsByRow = allSeatsInAuditorium
+            .GroupBy(s => s.RowCode)
+            .ToDictionary(g => g.Key, g => g.OrderBy(s => s.SeatNumber).ToList());
+
+        foreach (var (rowCode, rowSeats) in seatsByRow)
+        {
+            bool hasSelectedInRow = rowSeats.Any(s => candidateSet.Contains(s.SeatId));
+            if (!hasSelectedInRow) continue;
+
+            var isOccupiedAfter = rowSeats.Select(s => 
+                unavailableSet.Contains(s.SeatId) || candidateSet.Contains(s.SeatId)
+            ).ToList();
+
+            var isOccupiedBefore = rowSeats.Select(s => 
+                unavailableSet.Contains(s.SeatId)
+            ).ToList();
+
+            int n = rowSeats.Count;
+            int i = 0;
+            while (i < n)
+            {
+                if (!isOccupiedAfter[i])
+                {
+                    int start = i;
+                    while (i < n && !isOccupiedAfter[i])
+                    {
+                        i++;
+                    }
+                    int gapLength = i - start;
+
+                    if (gapLength == 1)
+                    {
+                        var orphanSeat = rowSeats[start];
+                        bool hasOccupiedLeft = start > 0 && isOccupiedAfter[start - 1];
+                        bool hasOccupiedRight = start < n - 1 && isOccupiedAfter[start + 1];
+
+                        if (hasOccupiedLeft && hasOccupiedRight)
+                        {
+                            bool wasTrappedBefore = (start > 0 && isOccupiedBefore[start - 1]) && 
+                                                    (start < n - 1 && isOccupiedBefore[start + 1]);
+
+                            if (!wasTrappedBefore)
+                            {
+                                throw new SeatConflictException(
+                                    $"Không được để trống 1 ghế ở giữa ({orphanSeat.SeatDisplayName}). Vui lòng chọn các ghế liền kề nhau!");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    i++;
+                }
+            }
+        }
+    }
 }

@@ -166,4 +166,46 @@ public class Rule1_SeatConflictTests
         // Act & Assert: Phải pass hợp lệ
         SeatBookingRule.ValidateNoSingleOrphanSeat(allSeats, selectedSeats, unavailableSeats);
     }
+
+    // --- TẦNG 4: KIỂM THỬ TƯƠNG TÁC CHỌN GHẾ THỰC TẾ (INTERACTIVE SEAT SELECTION) ---
+
+    [Fact]
+    public void ValidateInteractiveSeatSelection_WhenF1ToF6Occupied_AndSelectingF8WithoutF7_ThrowsSeatConflictException()
+    {
+        // Arrange: Hàng A ghế 1 đến 6 đã có người mua. Khách chưa chọn A7 mà nhảy sang bấm A8
+        var allSeats = CreateSampleRowA();
+        var unavailableSeats = new List<int> { 1, 2, 3, 4, 5, 6 };
+        var candidateSeats = new List<int> { 8 }; // Bấm A8 bỏ rơi A7 ở giữa
+
+        // Act & Assert: Bắt buộc phải chặn A8 vì để lại A7 kẹp ở giữa A6 và A8!
+        var ex = Assert.Throws<SeatConflictException>(() =>
+            SeatBookingRule.ValidateInteractiveSeatSelection(allSeats, candidateSeats, unavailableSeats));
+
+        Assert.Contains("Không được để trống 1 ghế ở giữa", ex.Message);
+        Assert.Contains("A7", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateInteractiveSeatSelection_WhenF1ToF6Occupied_AndSelectingF7_DoesNotThrow()
+    {
+        // Arrange: Hàng A ghế 1 đến 6 đã có người mua. Khách bấm chọn A7 liền kề A6
+        var allSeats = CreateSampleRowA();
+        var unavailableSeats = new List<int> { 1, 2, 3, 4, 5, 6 };
+        var candidateSeats = new List<int> { 7 }; // Chọn A7 liền kề A6
+
+        // Act & Assert: Phải cho phép chọn A7 để sau đó khách có thể click tiếp A8!
+        SeatBookingRule.ValidateInteractiveSeatSelection(allSeats, candidateSeats, unavailableSeats);
+    }
+
+    [Fact]
+    public void ValidateInteractiveSeatSelection_WhenF1ToF7Occupied_AndSelectingF8_DoesNotThrow()
+    {
+        // Arrange: Khách đã chọn A7 và click tiếp A8 để mua trọn vẹn cả hàng
+        var allSeats = CreateSampleRowA();
+        var unavailableSeats = new List<int> { 1, 2, 3, 4, 5, 6 };
+        var candidateSeats = new List<int> { 7, 8 };
+
+        // Act & Assert: Phải pass hợp lệ
+        SeatBookingRule.ValidateInteractiveSeatSelection(allSeats, candidateSeats, unavailableSeats);
+    }
 }
