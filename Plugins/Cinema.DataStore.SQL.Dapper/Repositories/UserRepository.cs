@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Cinema.CoreBusiness.Models;
+﻿using Cinema.CoreBusiness.Models;
 using Cinema.UseCases.PluginInterfaces.DataStore;
 using Dapper;
 
@@ -13,13 +11,6 @@ public class UserRepository : IUserRepository
     public UserRepository(ISqlConnectionFactory factory)
     {
         _factory = factory;
-    }
-
-    public static string HashPassword(string password)
-    {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes("Cinema_Salt_Starlight_" + password));
-        return Convert.ToBase64String(bytes);
     }
 
     public async Task<User?> GetUserByUsernameAsync(string username)
@@ -46,7 +37,7 @@ public class UserRepository : IUserRepository
     public async Task<int> CreateUserAsync(User user, string plainPassword)
     {
         using var connection = _factory.CreateConnection();
-        user.PasswordHash = HashPassword(plainPassword);
+        user.PasswordHash = plainPassword;
 
         const string sql = @"
             INSERT INTO dbo.[User] (Username, PasswordHash, FullName, Email, PhoneNumber, Role, CreatedAt)
@@ -68,9 +59,7 @@ public class UserRepository : IUserRepository
         var user = await connection.QueryFirstOrDefaultAsync<User>(sql, new { Keyword = usernameOrEmail.Trim() });
         if (user == null) return null;
 
-        // Cho phép đăng nhập bằng cả mật khẩu plain (tài khoản seed admin123, khach123) hoặc hash SHA-256
-        string hashed = HashPassword(plainPassword);
-        if (user.PasswordHash == plainPassword || user.PasswordHash == hashed)
+        if (user.PasswordHash == plainPassword)
         {
             return user;
         }
