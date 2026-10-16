@@ -322,9 +322,10 @@ html, body {
 }
 
 .seat-standard {
-    background-color: #1e293b;
-    border-color: #475569;
-    color: #e2e8f0;
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    font-weight: 700;
 }
 
 .seat-standard:hover:not(.seat-sold):not(.seat-held) {
@@ -336,9 +337,10 @@ html, body {
 }
 
 .seat-vip {
-    background-color: #451a03;
-    border-color: var(--gold);
-    color: #fef3c7;
+    background-color: #f97316;
+    border-color: #ea580c;
+    color: #ffffff;
+    font-weight: 700;
 }
 
 .seat-vip:hover:not(.seat-sold):not(.seat-held) {
@@ -349,9 +351,10 @@ html, body {
 }
 
 .seat-sweetbox {
-    background-color: #500724;
-    border-color: var(--pink);
-    color: #fdf2f8;
+    background-color: #ec4899;
+    border-color: #db2777;
+    color: #ffffff;
+    font-weight: 700;
 }
 
 .seat-sweetbox:hover:not(.seat-sold):not(.seat-held) {
@@ -362,21 +365,21 @@ html, body {
 }
 
 .seat-selected {
-    background-color: #22c55e !important;
-    border-color: #4ade80 !important;
-    color: #ffffff !important;
+    background-color: #facc15 !important;
+    border-color: #eab308 !important;
+    color: #000000 !important;
     font-weight: 900 !important;
     transform: translateY(-2px) scale(1.12);
-    box-shadow: 0 0 16px rgba(34, 197, 94, 0.8) !important;
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.85) !important;
     z-index: 2;
 }
 
 .seat-sold {
-    background-color: rgba(30, 41, 59, 0.45) !important;
-    border-color: rgba(71, 85, 105, 0.4) !important;
+    background-color: #334155 !important;
+    border-color: #475569 !important;
     color: #64748b !important;
     cursor: not-allowed !important;
-    opacity: 0.55;
+    opacity: 0.65;
     text-decoration: line-through;
 }
 
@@ -831,4 +834,47 @@ code {
     opacity: 0.65;
     text-decoration: line-through;
     font-size: 0.65rem;
+}
+
+
+/* ==========================================================================
+   Seat Legend Indicators (Minimalist Image 1 Style)
+   ========================================================================== */
+.seat-legend-indicator {
+    display: inline-block;
+    width: 22px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.seat-legend-standard {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+}
+
+.seat-legend-vip {
+    background-color: #f97316;
+    border: 1px solid #ea580c;
+}
+
+.seat-legend-sweetbox {
+    background-color: #ec4899;
+    border: 1px solid #db2777;
+}
+
+.seat-legend-selected {
+    background-color: #facc15;
+    border: 1px solid #eab308;
+    box-shadow: 0 0 8px rgba(250, 204, 21, 0.7);
+}
+
+.seat-legend-held {
+    background-color: #ef4444;
+    border: 1px solid #dc2626;
+}
+
+.seat-legend-sold {
+    background-color: #334155;
+    border: 1px solid #475569;
 }

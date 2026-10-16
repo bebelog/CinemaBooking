@@ -112,17 +112,11 @@
                             <div class="d-flex flex-wrap gap-1 p-2 rounded bg-dark border border-secondary border-opacity-25">
                                 @foreach (var seat in _selectedSeats)
                                 {
-                                    var seatBadgeClass = seat.SeatType switch
-                                    {
-                                        "VIP" => "badge-seat-vip",
-                                        "Sweetbox" => "badge-seat-sweetbox",
-                                        _ => "badge-seat-standard"
-                                    };
-
-                                    <span class="badge @seatBadgeClass px-2 py-1 shadow-sm d-inline-flex align-items-center gap-1" style="font-size: 0.82rem; border-radius: 6px;">
+                                    <span class="badge px-3 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-1"
+                                          style="background: #facc15; border: 1px solid #eab308; color: #000000 !important; font-size: 0.85rem; border-radius: 6px;">
                                         <i class="bi bi-ticket-perforated"></i>
                                         <span>@seat.SeatDisplayName</span>
-                                        <small style="opacity: 0.85; font-size: 0.72rem;">(@seat.SeatType)</small>
+                                        <small style="opacity: 0.85; font-size: 0.75rem;">(@seat.SeatType)</small>
                                     </span>
                                 }
                             </div>
