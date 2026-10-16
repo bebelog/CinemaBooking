@@ -42,23 +42,14 @@
 
         @if (!string.IsNullOrEmpty(_loadError))
     {
-        <div class="alert alert-danger alert-dismissible fade show p-3 mb-3 small d-flex align-items-center justify-content-between shadow-sm" role="alert" style="border-radius: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fee2e2;">
+        <div class="alert alert-danger alert-dismissible fade show p-3 mb-3 small d-flex align-items-center justify-content-between shadow-sm" 
+             role="alert" 
+             style="border-radius: 12px; background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.45); color: #fee2e2;">
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
                 <span class="fw-semibold">@_loadError</span>
             </div>
-            <button type="button" class="btn-close" @onclick="() => _loadError = null"></button>
-        </div>
-    }
-
-    @if (_seats.Any(s => s.IsHeldByOther))
-    {
-        <div class="alert py-2 px-3 mb-3 small d-flex align-items-center justify-content-between shadow-sm" 
-             style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fef3c7; border-radius: 10px;">
-            <div class="d-flex align-items-center gap-2">
-                <span class="fs-6">🔒</span>
-                <span><strong>Thông báo giữ chỗ:</strong> Ghế có biểu tượng ổ khóa màu đỏ đang được người khác giữ chỗ tạm thời (tối đa 10 phút). Bạn vui lòng chọn các ghế còn trống khác!</span>
-            </div>
+            <button type="button" class="btn-close" @onclick="() => SetError(null)"></button>
         </div>
     }
 
@@ -183,7 +174,8 @@
     private List<SeatDto> _seats = new();
     private HashSet<int> _selectedSeatIds = new();
     private bool _isLoading = true;
-    private string? _loadError;
+        private string? _loadError;
+    private CancellationTokenSource? _errorCts;
     private int _lastLoadedShowtimeId;
 
     // Countdown timer state
@@ -303,19 +295,53 @@
         }
     }
 
+    
+    private void SetError(string? message, int autoDismissSeconds = 4)
+    {
+        _errorCts?.Cancel();
+        _errorCts?.Dispose();
+        _errorCts = null;
+
+        _loadError = message;
+        StateHasChanged();
+
+        if (!string.IsNullOrEmpty(message) && autoDismissSeconds > 0)
+        {
+            _errorCts = new CancellationTokenSource();
+            var token = _errorCts.Token;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(autoDismissSeconds * 1000, token);
+                    if (!token.IsCancellationRequested)
+                    {
+                        await InvokeAsync(() =>
+                        {
+                            _loadError = null;
+                            StateHasChanged();
+                        });
+                    }
+                }
+                catch (TaskCanceledException) { }
+            }, token);
+        }
+    }
+
     private async Task ToggleSeatSelection(SeatDto seat)
     {
         if (IsDisabled) return;
 
         if (seat.IsBooked)
         {
-            _loadError = $"Ghế {seat.SeatDisplayName} đã được bán vé thành công. Vui lòng chọn ghế còn trống khác!";
+            SetError($"Ghế {seat.SeatDisplayName} đã được bán vé thành công. Vui lòng chọn ghế còn trống khác!");
             return;
         }
 
         if (seat.IsHeldByOther && !seat.IsHeldByMe)
         {
-            _loadError = $"Ghế {seat.SeatDisplayName} hiện đang được khách hàng khác giữ chỗ (tối đa 10 phút). Vui lòng chọn ghế khác hoặc chờ hết thời gian giữ chỗ!";
+            SetError($"Ghế {seat.SeatDisplayName} hiện đang được khách hàng khác giữ chỗ (tối đa 10 phút). Vui lòng chọn ghế khác hoặc chờ hết thời gian giữ chỗ!");
             return;
         }
 
@@ -345,7 +371,7 @@
                 }
                 catch (SeatConflictException ex)
                 {
-                    _loadError = ex.Message;
+                    SetError(ex.Message);
                     return;
                 }
             }
@@ -362,7 +388,7 @@
         {
             if (_selectedSeatIds.Count >= 8)
             {
-                _loadError = "Bạn chỉ được chọn tối đa 8 ghế trong một lần đặt vé!";
+                SetError("Bạn chỉ được chọn tối đa 8 ghế trong một lần đặt vé!");
                 return;
             }
 
@@ -387,14 +413,14 @@
             }
             catch (SeatConflictException ex)
             {
-                _loadError = ex.Message;
+                SetError(ex.Message);
                 return;
             }
 
             bool holdSuccess = HoldSeatsUseCase.TryHold(ShowtimeId, new[] { seat.SeatId }, UserSession.SessionId, TimeSpan.FromMinutes(10));
             if (!holdSuccess)
             {
-                _loadError = $"Ghế {seat.SeatDisplayName} vừa bị người khác chọn trước. Vui lòng chọn ghế khác!";
+                SetError($"Ghế {seat.SeatDisplayName} vừa bị người khác chọn trước. Vui lòng chọn ghế khác!");
                 await LoadSeatsAsync(notifyParent: true);
                 return;
             }
@@ -435,7 +461,7 @@
                         {
                             HoldSeatsUseCase.Release(ShowtimeId, _selectedSeatIds, UserSession.SessionId);
                             _selectedSeatIds.Clear();
-                            _loadError = "Thời gian giữ ghế (10 phút) đã hết. Ghế đã được tự động giải phóng!";
+                            SetError("Thời gian giữ ghế (10 phút) đã hết. Ghế đã được tự động giải phóng!");
                             await NotifyParentSelectionAsync();
                             await LoadSeatsAsync(notifyParent: true);
                             StateHasChanged();
