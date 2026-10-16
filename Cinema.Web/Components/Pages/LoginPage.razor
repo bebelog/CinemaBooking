@@ -2,62 +2,81 @@
 @inject CustomAuthStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 
-<PageTitle>Đăng Nhập Quản Trị Viên - Starlight Cinema Huế</PageTitle>
+<PageTitle>Đăng Nhập Tài Khoản - Starlight Cinema Huế</PageTitle>
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="card card-clean p-4 p-md-5 shadow-sm">
+                <!-- Header -->
                 <div class="text-center mb-4">
-                    <div class="text-primary fs-1 mb-2">
+                    <div class="text-warning fs-1 mb-2">
                         <i class="bi bi-shield-lock-fill"></i>
                     </div>
-                    <h3 class="fw-bold text-white">Đăng Nhập Quản Trị</h3>
+                    <h3 class="fw-bold text-white">Đăng Nhập</h3>
                     <p class="text-muted small">
-                        Hệ thống xác thực Cookie Authentication cho người quản trị rạp chiếu
+                        Dành cho Thành Viên rạp chiếu và Quản Trị Viên hệ thống
                     </p>
                 </div>
 
                 @if (!string.IsNullOrEmpty(_errorMessage))
                 {
-                    <div class="alert alert-danger small py-2">
+                    <div class="alert alert-danger small py-2 mb-3">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>@_errorMessage
                     </div>
                 }
 
                 <form @onsubmit="HandleLogin" @onsubmit:preventDefault>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Tài Khoản Quản Trị *</label>
+                        <label class="form-label small fw-bold text-light">Tên Đăng Nhập hoặc Email *</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                            <input type="text" class="form-control" @bind="_username" placeholder="admin" required />
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" @bind="_username" placeholder="admin hoặc khachhang..." required />
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label small fw-bold">Mật Khẩu *</label>
+                        <label class="form-label small fw-bold text-light">Mật Khẩu *</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
-                            <input type="password" class="form-control" @bind="_password" placeholder="admin123" required />
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control" @bind="_password" placeholder="••••••••" required />
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" style="border-radius: 8px;">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng Nhập
+                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" disabled="@_isSubmitting" style="border-radius: 8px;">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <span>Đang kiểm tra...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            <span>Đăng Nhập</span>
+                        }
                     </button>
                 </form>
 
-                <!-- Quick Autofill Box for Grading Demo -->
-                <div class="bg-light p-3 rounded-3 border mt-4">
+                <div class="text-center mt-3 pt-3 border-top border-secondary border-opacity-25">
+                    <span class="text-muted small">Chưa có tài khoản thành viên?</span>
+                    <a href="/register" class="text-warning text-decoration-none fw-bold small ms-1">Đăng ký ngay tại đây</a>
+                </div>
+
+                <!-- Quick Autofill Box for Grading Demo (2 Roles: Admin & Customer) -->
+                <div class="p-3 rounded-3 border mt-4" style="background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1) !important;">
                     <div class="small fw-bold text-muted mb-2">
-                        <i class="bi bi-info-circle-fill text-primary me-1"></i>Tài khoản chấm bài mặc định:
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Tài khoản chấm bài mẫu (2 Vai trò theo Rubric):
                     </div>
-                    <div class="small text-muted mb-2">
-                        User: <code>admin</code> | Pass: <code>admin123</code>
+                    <div class="d-flex flex-column gap-2">
+                        <button class="btn btn-sm btn-outline-warning text-start py-2" @onclick="AutoFillCustomer">
+                            <div class="fw-bold"><i class="bi bi-person-check me-1"></i>1. Khách Hàng (Customer):</div>
+                            <small class="text-white-50">User: <code>khachhang</code> | Pass: <code>khach123</code></small>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info text-start py-2" @onclick="AutoFillAdmin">
+                            <div class="fw-bold"><i class="bi bi-shield-lock me-1"></i>2. Quản Trị Viên (Admin):</div>
+                            <small class="text-white-50">User: <code>admin</code> | Pass: <code>admin123</code></small>
+                        </button>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary w-100" @onclick="AutoFill">
-                        <i class="bi bi-magic me-1"></i>Tự động điền tài khoản mẫu
-                    </button>
                 </div>
             </div>
         </div>
@@ -67,26 +86,54 @@
 @code {
     private string _username = "";
     private string _password = "";
+    private bool _isSubmitting = false;
     private string? _errorMessage;
 
-    private void AutoFill()
+    private void AutoFillAdmin()
     {
         _username = "admin";
         _password = "admin123";
         _errorMessage = null;
     }
 
+    private void AutoFillCustomer()
+    {
+        _username = "khachhang";
+        _password = "khach123";
+        _errorMessage = null;
+    }
+
     private async Task HandleLogin()
     {
         _errorMessage = null;
-        bool success = await AuthStateProvider.LoginAsync(_username, _password);
-        if (success)
+        _isSubmitting = true;
+
+        try
         {
-            Navigation.NavigateTo("/admin/showtimes");
+            var user = await AuthStateProvider.LoginAsync(_username, _password);
+            if (user != null)
+            {
+                if (user.Role == "Admin")
+                {
+                    Navigation.NavigateTo("/admin/showtimes");
+                }
+                else
+                {
+                    Navigation.NavigateTo("/my-bookings");
+                }
+            }
+            else
+            {
+                _errorMessage = "Tên đăng nhập / Email hoặc mật khẩu không chính xác.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _errorMessage = "Tên đăng nhập hoặc mật khẩu không chính xác (Thử: admin / admin123)";
+            _errorMessage = $"Lỗi đăng nhập: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
         }
     }
 }

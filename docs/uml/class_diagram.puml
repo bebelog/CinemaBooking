@@ -1,0 +1,163 @@
+﻿@startuml
+skinparam classAttributeIconSize 0
+
+package "1. Cinema.CoreBusiness (Domain)" {
+    class Movie {
+        +int MovieId
+        +string Title
+        +string Director
+        +string Cast
+        +string Genre
+        +int DurationMinutes
+        +string AgeRating
+        +string PosterUrl
+    }
+
+    class Auditorium {
+        +int AuditoriumId
+        +string Name
+        +int TotalSeats
+        +string ScreenType
+    }
+
+    class Seat {
+        +int SeatId
+        +int AuditoriumId
+        +string RowCode
+        +int SeatNumber
+        +string SeatType
+        +decimal PriceModifier
+        +string SeatDisplayName
+    }
+
+    class Showtime {
+        +int ShowtimeId
+        +int MovieId
+        +int AuditoriumId
+        +DateTime StartTime
+        +DateTime EndTime
+        +decimal BasePrice
+    }
+
+    class Booking {
+        +int BookingId
+        +string BookingReference
+        +int ShowtimeId
+        +int? UserId
+        +string CustomerName
+        +string CustomerEmail
+        +string CustomerPhone
+        +decimal TotalAmount
+        +DateTime BookingTime
+        +string Status
+        +string PaymentMethod
+    }
+
+    class Ticket {
+        +int TicketId
+        +int BookingId
+        +int ShowtimeId
+        +int SeatId
+        +decimal TicketPrice
+        +string TicketCode
+    }
+
+    class User {
+        +int UserId
+        +string Username
+        +string PasswordHash
+        +string FullName
+        +string Email
+        +string PhoneNumber
+        +string Role
+    }
+
+    class SeatBookingRule <<static>> {
+        +ValidateSeatCount(seatIds)
+        +ValidateSeatsAvailability(requested, booked, held)
+        +ValidateNoSingleOrphanSeat(allSeats, requested, unavailable)
+    }
+
+    class ShowtimeScheduleRule <<static>> {
+        +ValidateNotInPast(startTime)
+        +ValidateOperatingHours(start, end)
+        +ValidateNoOverlap(existingList, newStart, newEnd)
+    }
+
+    Booking "1" *-- "many" Ticket : Header-Line
+    Movie "1" <-- "many" Showtime
+    Auditorium "1" <-- "many" Showtime
+    Auditorium "1" *-- "many" Seat
+    User "1" <-- "0..*" Booking
+}
+
+package "2. Cinema.UseCases (Application)" {
+    interface IBookingRepository {
+        +CreateBookingWithTicketsAsync(booking, tickets)
+        +GetBookingByReferenceAsync(reference)
+        +GetBookingsByCustomerAsync(userId, email, phone)
+    }
+
+    interface IShowtimeRepository {
+        +GetShowtimeByIdAsync(id)
+        +GetOverlappingShowtimesAsync(auditoriumId, start, end)
+    }
+
+    interface ISeatRepository {
+        +GetSeatsByAuditoriumIdAsync(auditoriumId)
+        +GetBookedSeatIdsByShowtimeIdAsync(showtimeId)
+    }
+
+    interface IUserRepository {
+        +CreateUserAsync(user, password)
+        +ValidateUserCredentialsAsync(username, password)
+    }
+
+    interface ISeatHoldingStateStore {
+        +TryHoldSeats(showtimeId, seatIds, sessionId, duration)
+        +ReleaseSeats(showtimeId, seatIds, sessionId)
+    }
+
+    interface IEmailService {
+        +SendTicketEmailAsync(email, name, refCode, movie, start, room, screen, seats, total, method)
+    }
+
+    class CreateBookingUseCase {
+        -IBookingRepository _bookingRepo
+        -ISeatRepository _seatRepo
+        -IShowtimeRepository _showtimeRepo
+        -ISeatHoldingStateStore _holdingStore
+        -IEmailService _emailService
+        +ExecuteAsync(booking, seatIds, sessionId) : Task<string>
+    }
+
+    CreateBookingUseCase ..> SeatBookingRule : calls
+    CreateBookingUseCase --> IBookingRepository
+    CreateBookingUseCase --> ISeatRepository
+    CreateBookingUseCase --> IShowtimeRepository
+    CreateBookingUseCase --> ISeatHoldingStateStore
+    CreateBookingUseCase --> IEmailService
+}
+
+package "3. Cinema.Plugins (Infrastructure)" {
+    class BookingRepository implements IBookingRepository
+    class ShowtimeRepository implements IShowtimeRepository
+    class SeatRepository implements ISeatRepository
+    class UserRepository implements IUserRepository
+    class SeatHoldingStateStore implements ISeatHoldingStateStore
+}
+
+package "4. Cinema.Web (Presentation)" {
+    class BookingPage <<Page>>
+    class ConfirmationPage <<Page>>
+    class MyBookingsPage <<Page>>
+    class RegisterPage <<Page>>
+    class LoginPage <<Page>>
+    class SeatMapComponent <<Component>>
+    class MovieCardComponent <<Component>>
+    class ConfirmModalComponent <<Component>>
+    class SmtpEmailService implements IEmailService
+
+    BookingPage --> CreateBookingUseCase
+}
+@enduml

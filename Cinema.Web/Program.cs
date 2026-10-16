@@ -11,6 +11,7 @@ using Cinema.UseCases.PluginInterfaces.StateStore;
 using Cinema.UseCases.Reports;
 using Cinema.UseCases.Seats;
 using Cinema.UseCases.Showtimes;
+using Cinema.UseCases.Users;
 using Cinema.Web.Components;
 using Cinema.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -36,6 +37,7 @@ builder.Services.AddScoped<IAuditoriumRepository, AuditoriumRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // 3. StateStore & Services
 builder.Services.AddSingleton<ISeatHoldingStateStore, SeatHoldingStateStore>();
@@ -56,6 +58,9 @@ builder.Services.AddTransient<ICreateBookingUseCase, CreateBookingUseCase>();
 builder.Services.AddTransient<IGetBookingDetailsUseCase, GetBookingDetailsUseCase>();
 builder.Services.AddTransient<IViewRecentBookingsUseCase, ViewRecentBookingsUseCase>();
 builder.Services.AddTransient<IViewOccupancyReportUseCase, ViewOccupancyReportUseCase>();
+builder.Services.AddTransient<IRegisterUserUseCase, RegisterUserUseCase>();
+builder.Services.AddTransient<ILoginUserUseCase, LoginUserUseCase>();
+builder.Services.AddTransient<IViewMyBookingsUseCase, ViewMyBookingsUseCase>();
 builder.Services.AddTransient<ISemanticMovieSearchUseCase>(sp =>
 {
     var movieRepo = sp.GetRequiredService<IMovieRepository>();

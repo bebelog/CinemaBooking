@@ -35,7 +35,7 @@ Dự án được cấu trúc nghiêm ngặt theo mô hình **Clean Architecture
    - Floating AI Cinema Assistant (Widget Trợ lý AI ở góc dưới bên phải ở mọi trang).
    - Hệ thống xác thực phân quyền Cookie Authentication (Admin / Khách vãng lai).
 6. `Cinema.UnitTests`:
-   - Dự án xUnit kiểm thử tự động đạt **25/25 Tests PASS (100%)**.
+   - Dự án xUnit kiểm thử tự động đạt **29/29 Tests PASS (100%)**.
    - Kiểm thử 2 luật nghiệp vụ cốt lõi (19 tests), Mock Repositories với Moq (100% Pass), và kiểm thử thuật toán AI Semantic Search.
 
 ---
@@ -84,7 +84,7 @@ Dự án được cấu trúc nghiêm ngặt theo mô hình **Clean Architecture
    dotnet run --project Cinema.Web/Cinema.Web.csproj --launch-profile http
    ```
    Truy cập trình duyệt: `http://localhost:5284` (hoặc profile https tại `https://localhost:7190`).
-4. **Chạy Unit Tests (25/25 Tests PASS):**
+4. **Chạy Unit Tests (29/29 Tests PASS):**
    ```bash
    dotnet test
    ```

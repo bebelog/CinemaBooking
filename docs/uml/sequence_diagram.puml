@@ -1,0 +1,55 @@
+﻿@startuml
+autonumber
+actor "Khách Hàng (Customer)" as Customer
+participant "BookingPage\n(UI Razor)" as UI
+participant "SeatMapComponent\n(Control)" as SeatMap
+participant "SeatHoldingStateStore\n(In-Memory State)" as StateStore
+participant "CreateBookingUseCase\n(Application)" as UseCase
+participant "SeatBookingRule\n(Core Domain)" as Rule
+participant "BookingRepository\n(Dapper Plugin)" as Repo
+database "SQL Server\n(Database)" as DB
+participant "IEmailService\n(SmtpEmailService)" as Email
+
+== GIAI ĐOẠN 1: CHỌN GHẾ & GIỮ CHỖ THỜI GIAN THỰC (10 PHÚT) ==
+Customer -> SeatMap : Chọn ghế (VD: C1, C2)
+SeatMap -> StateStore : TryHoldSeats(showtimeId, seatIds, sessionId, 10 min)
+StateStore --> SeatMap : Giữ thành công, bắt đầu đếm ngược 10:00
+SeatMap --> UI : OnSelectionChanged(selectedSeats)
+UI --> Customer : Cập nhật tổng tiền & thông tin ghế
+
+== GIAI ĐOẠN 2: GIAO DỊCH ĐẶT VÉ (HEADER-LINE TRANSACTION) ==
+Customer -> UI : Điền thông tin & Bấm "Xác Nhận & Đặt Vé"
+UI -> UseCase : ExecuteAsync(booking, seatIds, sessionId)
+
+UseCase -> Rule : ValidateSeatCount(seatIds) (1 - 8 ghế)
+Rule --> UseCase : Hợp lệ
+
+UseCase -> Rule : ValidateSeatsAvailability(seatIds, bookedSeats, heldByOthers)
+Rule --> UseCase : Hợp lệ (Không tranh chấp)
+
+UseCase -> Rule : ValidateNoSingleOrphanSeat(allSeats, seatIds, unavailable)
+Rule --> UseCase : Hợp lệ (Không để lại ghế trống đơn lẻ)
+
+UseCase -> Repo : CreateBookingWithTicketsAsync(booking, tickets)
+activate Repo
+Repo -> DB : BEGIN TRANSACTION
+Repo -> DB : INSERT INTO dbo.Booking ... (Header)
+Repo -> DB : INSERT INTO dbo.Ticket ... (Lines với UQ_Ticket_Showtime_Seat)
+DB --> Repo : Ghi thành công
+Repo -> DB : COMMIT TRANSACTION
+Repo --> UseCase : Trả về BookingReference (BK-YYYYMMDD-XXXXXX)
+deactivate Repo
+
+UseCase -> StateStore : ReleaseSeats(showtimeId, seatIds, sessionId)
+StateStore --> UseCase : Giải phóng trạng thái giữ ghế
+
+== GIAI ĐOẠN 3: GỬI VÉ ĐIỆN TỬ & ĐIỀU HƯỚNG GIAO DIỆN ==
+UseCase -> Email : Task.Run(SendTicketEmailAsync(...)) [Background Task]
+activate Email
+Email -> Customer : Gửi Email E-Ticket HTML kèm Mã Vé & QR Code vào Gmail
+deactivate Email
+
+UseCase --> UI : Trả về BookingReference
+UI -> UI : NavigationManager.NavigateTo("/confirmation/{BookingReference}")
+UI --> Customer : Hiển thị màn hình Xác Nhận Vé Thành Công & Mã QR
+@enduml

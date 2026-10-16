@@ -1,0 +1,47 @@
+﻿@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Khách Hàng (Customer)" as Customer
+actor "Quản Trị Viên (Admin)" as Admin
+
+rectangle "Hệ Thống Đặt Vé Rạp Phim - Starlight Cinema Huế" {
+    package "Phân Hệ Khách Hàng (Customer Portal)" {
+        usecase "UC01: Xem Phim & Lịch Chiếu" as UC01
+        usecase "UC02: Tìm Kiếm Phim Ngữ Nghĩa (AI)" as UC02
+        usecase "UC03: Chọn Ghế & Giữ Chỗ Real-time (10p)" as UC03
+        usecase "UC04: Đặt Vé & Nhận E-Ticket Qua Gmail" as UC04
+        usecase "UC05: Tra Cứu Vé Bằng Mã (BookingRef)" as UC05
+        usecase "UC06: Đăng Ký Tài Khoản Thành Viên" as UC06
+        usecase "UC07: Đăng Nhập & Xem Vé Của Tôi" as UC07
+    }
+
+    package "Phân Hệ Quản Trị (Admin Portal)" {
+        usecase "UC08: Đăng Nhập Quản Trị" as UC08
+        usecase "UC09: Quản Lý Phim (CRUD)" as UC09
+        usecase "UC10: Quản Lý Suất Chiếu (Luật 2)" as UC10
+        usecase "UC11: Báo Cáo Tỷ Lệ Lấp Đầy" as UC11
+        usecase "UC12: Quản Lý Đơn Đặt Vé" as UC12
+    }
+}
+
+Customer --> UC01
+Customer --> UC02
+Customer --> UC03
+Customer --> UC04
+Customer --> UC05
+Customer --> UC06
+Customer --> UC07
+
+Admin --> UC08
+Admin --> UC09
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+
+UC04 ..> UC03 : <<include>>
+UC10 ..> UC08 : <<include>>
+UC09 ..> UC08 : <<include>>
+UC11 ..> UC08 : <<include>>
+@enduml

@@ -1,0 +1,191 @@
+﻿@page "/register"
+@inject IRegisterUserUseCase RegisterUserUseCase
+@inject CustomAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<PageTitle>Đăng Ký Tài Khoản Thành Viên - Starlight Cinema Huế</PageTitle>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card card-clean p-4 p-md-5 shadow-sm">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="text-warning fs-1 mb-2">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h3 class="fw-bold text-white">Đăng Ký Thành Viên</h3>
+                    <p class="text-muted small">
+                        Tạo tài khoản Starlight Cinema Huế để lưu lịch sử đặt vé, xem lại vé bất kỳ lúc nào và nhận nhiều ưu đãi rạp chiếu!
+                    </p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-danger small py-2 mb-3">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>@_errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_successMessage))
+                {
+                    <div class="alert alert-success small py-2 mb-3">
+                        <i class="bi bi-check-circle-fill me-1"></i>@_successMessage
+                    </div>
+                }
+
+                <EditForm Model="@_model" OnValidSubmit="HandleRegister">
+                    <DataAnnotationsValidator />
+
+                    <!-- Họ và Tên -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Họ & Tên *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person"></i></span>
+                            <InputText @bind-Value="_model.FullName" class="form-control" placeholder="Ví dụ: Nguyễn Viết Mẫn" />
+                        </div>
+                        <ValidationMessage For="@(() => _model.FullName)" class="text-danger small mt-1" />
+                    </div>
+
+                    <!-- Tên đăng nhập -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-light">Tên Đăng Nhập *</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-at"></i></span>
+                            <InputText @bind-Value="_model.Username" class="form-control" placeholder="viết liền không dấu (VD: nguyenman)" />
+                        </div>
+                        <ValidationMessage For="@(() => _model.Username)" class="text-danger small mt-1" />
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <!-- Số điện thoại -->
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-light">Số Điện Thoại *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-telephone"></i></span>
+                                <InputText @bind-Value="_model.PhoneNumber" class="form-control" placeholder="0905123456" />
+                            </div>
+                            <ValidationMessage For="@(() => _model.PhoneNumber)" class="text-danger small mt-1" />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-light">Email Nhận Vé *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-envelope"></i></span>
+                                <InputText @bind-Value="_model.Email" class="form-control" placeholder="ban@gmail.com" />
+                            </div>
+                            <ValidationMessage For="@(() => _model.Email)" class="text-danger small mt-1" />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <!-- Mật khẩu -->
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-light">Mật Khẩu *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-key"></i></span>
+                                <InputText @bind-Value="_model.Password" type="password" class="form-control" placeholder="Ít nhất 6 ký tự" />
+                            </div>
+                            <ValidationMessage For="@(() => _model.Password)" class="text-danger small mt-1" />
+                        </div>
+
+                        <!-- Xác nhận mật khẩu -->
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-light">Xác Nhận Mật Khẩu *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-shield-lock"></i></span>
+                                <InputText @bind-Value="_model.ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                            </div>
+                            <ValidationMessage For="@(() => _model.ConfirmPassword)" class="text-danger small mt-1" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-cinema-gold w-100 py-2 fw-bold" disabled="@_isSubmitting" style="border-radius: 8px;">
+                        @if (_isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <span>Đang tạo tài khoản...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-person-check-fill me-2"></i>
+                            <span>Hoàn Tất Đăng Ký Thành Viên</span>
+                        }
+                    </button>
+                </EditForm>
+
+                <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <span class="text-muted small">Đã có tài khoản thành viên?</span>
+                    <a href="/login" class="text-warning text-decoration-none fw-bold small ms-1">Đăng nhập tại đây</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterFormModel _model = new();
+    private bool _isSubmitting = false;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    public class RegisterFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Họ và tên không được để trống")]
+        [System.ComponentModel.DataAnnotations.MinLength(2, ErrorMessage = "Họ và tên tối thiểu 2 ký tự")]
+        public string FullName { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Tên đăng nhập không được để trống")]
+        [System.ComponentModel.DataAnnotations.MinLength(3, ErrorMessage = "Tên đăng nhập tối thiểu 3 ký tự")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Tên đăng nhập chỉ chứa chữ cái, số và dấu gạch dưới")]
+        public string Username { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email không được để trống")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Địa chỉ email không đúng định dạng")]
+        public string Email { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Số điện thoại không được để trống")]
+        [System.ComponentModel.DataAnnotations.Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        public string PhoneNumber { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Mật khẩu không được để trống")]
+        [System.ComponentModel.DataAnnotations.MinLength(6, ErrorMessage = "Mật khẩu phải từ 6 ký tự trở lên")]
+        public string Password { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng xác nhận lại mật khẩu")]
+        [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+
+    private async Task HandleRegister()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        _isSubmitting = true;
+
+        try
+        {
+            var newUser = await RegisterUserUseCase.ExecuteAsync(
+                _model.Username,
+                _model.Password,
+                _model.FullName,
+                _model.Email,
+                _model.PhoneNumber);
+
+            _successMessage = $"Chúc mừng {_model.FullName}! Đăng ký thành công. Hệ thống đang tự động đăng nhập...";
+            AuthStateProvider.SetUserManually(newUser);
+
+            await Task.Delay(1200);
+            Navigation.NavigateTo("/my-bookings");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

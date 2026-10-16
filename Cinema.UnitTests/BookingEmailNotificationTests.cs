@@ -20,7 +20,7 @@ public class BookingEmailNotificationTests
         public Task<Booking?> GetBookingByReferenceAsync(string reference) => Task.FromResult<Booking?>(null);
         public Task<Booking?> GetBookingByIdAsync(int bookingId) => Task.FromResult<Booking?>(null);
         public Task<IEnumerable<Booking>> GetRecentBookingsAsync(int count = 20) => Task.FromResult(Enumerable.Empty<Booking>());
-        public Task<IEnumerable<OccupancyReportDto>> GetOccupancyReportAsync() => Task.FromResult(Enumerable.Empty<OccupancyReportDto>());
+        public Task<IEnumerable<OccupancyReportDto>> GetOccupancyReportAsync() => Task.FromResult(Enumerable.Empty<OccupancyReportDto>()); public Task<IEnumerable<Booking>> GetBookingsByCustomerAsync(int? userId, string? email, string? phone) => Task.FromResult(Enumerable.Empty<Booking>());
     }
 
     private class FakeSeatRepository : ISeatRepository

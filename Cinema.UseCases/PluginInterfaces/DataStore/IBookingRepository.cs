@@ -10,4 +10,5 @@ public interface IBookingRepository
     Task<string> CreateBookingWithTicketsAsync(Booking booking, IEnumerable<Ticket> tickets);
     Task<IEnumerable<Booking>> GetRecentBookingsAsync(int count = 20);
     Task<IEnumerable<OccupancyReportDto>> GetOccupancyReportAsync();
+    Task<IEnumerable<Booking>> GetBookingsByCustomerAsync(int? userId, string? email, string? phone);
 }

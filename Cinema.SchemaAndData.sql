@@ -13,10 +13,25 @@ GO
 -- Drop tables in order of dependency if they exist for clean recreate
 IF OBJECT_ID('dbo.Ticket', 'U') IS NOT NULL DROP TABLE dbo.Ticket;
 IF OBJECT_ID('dbo.Booking', 'U') IS NOT NULL DROP TABLE dbo.Booking;
+IF OBJECT_ID('dbo.[User]', 'U') IS NOT NULL DROP TABLE dbo.[User];
+IF OBJECT_ID('dbo.Booking', 'U') IS NOT NULL DROP TABLE dbo.Booking;
 IF OBJECT_ID('dbo.Showtime', 'U') IS NOT NULL DROP TABLE dbo.Showtime;
 IF OBJECT_ID('dbo.Seat', 'U') IS NOT NULL DROP TABLE dbo.Seat;
 IF OBJECT_ID('dbo.Auditorium', 'U') IS NOT NULL DROP TABLE dbo.Auditorium;
 IF OBJECT_ID('dbo.Movie', 'U') IS NOT NULL DROP TABLE dbo.Movie;
+GO
+
+-- Table 0: User (Nguoi dung / Quan tri / Thanh vien)
+CREATE TABLE dbo.[User] (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    PhoneNumber NVARCHAR(20) NULL,
+    Role NVARCHAR(20) NOT NULL DEFAULT 'Customer', -- 'Customer' hoac 'Admin'
+    CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+);
 GO
 
 -- Table 1: Movie
@@ -78,6 +93,7 @@ CREATE TABLE dbo.Booking (
     BookingId INT IDENTITY(1,1) PRIMARY KEY,
     BookingReference VARCHAR(30) NOT NULL UNIQUE,
     ShowtimeId INT NOT NULL,
+    UserId INT NULL,
     CustomerName NVARCHAR(150) NOT NULL,
     CustomerEmail VARCHAR(150) NOT NULL,
     CustomerPhone VARCHAR(20) NOT NULL,
@@ -85,7 +101,8 @@ CREATE TABLE dbo.Booking (
     BookingTime DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
     Status NVARCHAR(30) NOT NULL DEFAULT 'Confirmed',
     PaymentMethod NVARCHAR(50) NOT NULL DEFAULT 'VNPAY / QR',
-    CONSTRAINT FK_Booking_Showtime FOREIGN KEY (ShowtimeId) REFERENCES dbo.Showtime(ShowtimeId)
+    CONSTRAINT FK_Booking_Showtime FOREIGN KEY (ShowtimeId) REFERENCES dbo.Showtime(ShowtimeId),
+    CONSTRAINT FK_Booking_User FOREIGN KEY (UserId) REFERENCES dbo.[User](UserId)
 );
 GO
 
@@ -217,4 +234,12 @@ VALUES
 (@BookingId2, 1, @SeatD5, 105000, 'TK-ST1-D5-004');
 GO
 
-PRINT 'CinemaDB database created and initialized with 6 tables and seed data successfully!';
+-- Seed Users (2 Vai tro: Admin va Customer)
+INSERT INTO dbo.[User] (Username, PasswordHash, FullName, Email, PhoneNumber, Role)
+VALUES 
+('admin', 'admin123', N'Quản trị viên Rạp', 'admin@starlightcinema.vn', '19001234', 'Admin'),
+('khachhang', 'khach123', N'Nguyễn Văn Khách', 'khachhang@gmail.com', '0905123456', 'Customer');
+GO
+
+PRINT 'CinemaDB database created and initialized with 7 tables and seed data successfully!';
+

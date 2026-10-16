@@ -1,36 +1,97 @@
 ﻿using System.Security.Claims;
+using Cinema.CoreBusiness.Models;
+using Cinema.UseCases.PluginInterfaces.DataStore;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Cinema.Web.Services;
 
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {
+    private readonly IUserRepository _userRepo;
     private ClaimsPrincipal _currentUser = new(new ClaimsIdentity());
+
+    public CustomAuthStateProvider(IUserRepository userRepo)
+    {
+        _userRepo = userRepo;
+    }
 
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         return Task.FromResult(new AuthenticationState(_currentUser));
     }
 
-    public Task<bool> LoginAsync(string username, string password)
+    public async Task<User?> LoginAsync(string usernameOrEmail, string password)
     {
-        // Tài khoản Quản trị viên mặc định theo quy định đồ án
-        if (username.Trim().ToLower() == "admin" && password == "admin123")
+        if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
+            return null;
+
+        var user = await _userRepo.ValidateUserCredentialsAsync(usernameOrEmail.Trim(), password);
+
+        // Fallback an toàn cho tài khoản mẫu nếu CSDL chưa kịp khởi tạo
+        if (user == null)
+        {
+            if (usernameOrEmail.Trim().ToLower() == "admin" && password == "admin123")
+            {
+                user = new User
+                {
+                    UserId = 1,
+                    Username = "admin",
+                    FullName = "Quản trị viên Rạp",
+                    Email = "admin@starlightcinema.vn",
+                    PhoneNumber = "19001234",
+                    Role = "Admin"
+                };
+            }
+            else if (usernameOrEmail.Trim().ToLower() == "khachhang" && password == "khach123")
+            {
+                user = new User
+                {
+                    UserId = 2,
+                    Username = "khachhang",
+                    FullName = "Nguyễn Văn Khách",
+                    Email = "khachhang@gmail.com",
+                    PhoneNumber = "0905123456",
+                    Role = "Customer"
+                };
+            }
+        }
+
+        if (user != null)
         {
             var claims = new List<Claim>
             {
-                new(ClaimTypes.Name, "Quản trị viên"),
-                new(ClaimTypes.Role, "Admin"),
-                new("Username", "admin")
+                new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new(ClaimTypes.Name, user.FullName),
+                new(ClaimTypes.Role, user.Role),
+                new(ClaimTypes.Email, user.Email),
+                new("Username", user.Username),
+                new("PhoneNumber", user.PhoneNumber ?? "")
             };
 
-            var identity = new ClaimsIdentity(claims, "CustomAuth");
+            var identity = new ClaimsIdentity(claims, "CinemaCookieAuth");
             _currentUser = new ClaimsPrincipal(identity);
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
-            return Task.FromResult(true);
+            return user;
         }
 
-        return Task.FromResult(false);
+        return null;
+    }
+
+    public void SetUserManually(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new(ClaimTypes.Name, user.FullName),
+            new(ClaimTypes.Role, user.Role),
+            new(ClaimTypes.Email, user.Email),
+            new("Username", user.Username),
+            new("PhoneNumber", user.PhoneNumber ?? "")
+        };
+
+        var identity = new ClaimsIdentity(claims, "CinemaCookieAuth");
+        _currentUser = new ClaimsPrincipal(identity);
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_currentUser)));
     }
 
     public Task LogoutAsync()

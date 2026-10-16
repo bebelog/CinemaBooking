@@ -17,6 +17,17 @@
             <NavLink href="lookup" class="cinema-nav-link">
                 <i class="bi bi-search me-1"></i>Tra Cứu Vé
             </NavLink>
+
+            <!-- Customer Links -->
+            <AuthorizeView Roles="Customer">
+                <Authorized>
+                    <NavLink href="my-bookings" class="cinema-nav-link">
+                        <i class="bi bi-ticket-perforated me-1"></i>Vé Của Tôi
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Admin Links -->
             <AuthorizeView Roles="Admin">
                 <Authorized>
                     <NavLink href="admin/movies" class="cinema-nav-link">
@@ -35,7 +46,7 @@
             </AuthorizeView>
         </nav>
 
-        <!-- Right Side: Student Badge & Auth -->
+        <!-- Right Side: Student Badge & Auth Controls -->
         <div class="d-flex align-items-center gap-3">
             <div class="student-tag d-none d-md-block">
                 <i class="bi bi-mortarboard-fill text-primary me-1"></i>Nguyễn Viết Mẫn (23K4080026 - HUE)
@@ -44,18 +55,33 @@
             <AuthorizeView>
                 <Authorized>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                            <i class="bi bi-shield-check me-1"></i>Admin
-                        </span>
+                        @if (context.User.IsInRole("Admin"))
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                <i class="bi bi-shield-check me-1"></i>Admin
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                                <i class="bi bi-person-fill me-1"></i>@context.User.Identity?.Name (Thành viên)
+                            </span>
+                        }
+
                         <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
                             <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
                         </button>
                     </div>
                 </Authorized>
                 <NotAuthorized>
-                    <a href="/login" class="btn btn-cinema-gold btn-sm px-3 fw-bold" style="border-radius: 8px;">
-                        <i class="bi bi-person-fill me-1"></i>Đăng Nhập
-                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/register" class="btn btn-outline-light btn-sm px-3" style="border-radius: 8px;">
+                            <i class="bi bi-person-plus me-1"></i>Đăng Ký
+                        </a>
+                        <a href="/login" class="btn btn-cinema-gold btn-sm px-3 fw-bold" style="border-radius: 8px;">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Đăng Nhập
+                        </a>
+                    </div>
                 </NotAuthorized>
             </AuthorizeView>
         </div>

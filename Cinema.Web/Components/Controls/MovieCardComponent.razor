@@ -1,0 +1,40 @@
+﻿@namespace Cinema.Web.Components.Controls
+
+<div class="movie-card h-100 shadow-sm d-flex flex-column justify-content-between">
+    <div>
+        <div class="movie-poster-wrapper position-relative overflow-hidden">
+            <img src="@Movie.PosterUrl" alt="@Movie.Title" class="movie-poster w-100" />
+            <span class="badge bg-danger position-absolute top-0 start-0 m-2 fw-bold">
+                @Movie.AgeRating
+            </span>
+            <span class="badge bg-dark position-absolute bottom-0 end-0 m-2 border border-secondary">
+                <i class="bi bi-clock me-1"></i>@Movie.DurationMinutes phút
+            </span>
+        </div>
+
+        <div class="p-3">
+            <div class="small text-warning fw-semibold mb-1">@Movie.Genre</div>
+            <h5 class="movie-title text-white fw-bold text-truncate" title="@Movie.Title">
+                @Movie.Title
+            </h5>
+            <p class="movie-desc text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                @Movie.Description
+            </p>
+        </div>
+    </div>
+
+    @if (ShowActions)
+    {
+        <div class="p-3 pt-0">
+            <button class="btn btn-cinema-gold w-100 py-2 fw-bold btn-sm" @onclick="() => OnSelectMovie.InvokeAsync(Movie)">
+                <i class="bi bi-ticket-perforated-fill me-1"></i>Chọn Suất Chiếu
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Movie Movie { get; set; } = default!;
+    [Parameter] public EventCallback<Movie> OnSelectMovie { get; set; }
+    [Parameter] public bool ShowActions { get; set; } = true;
+}

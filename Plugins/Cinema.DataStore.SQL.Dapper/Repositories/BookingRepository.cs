@@ -29,8 +29,8 @@ public class BookingRepository : IBookingRepository
         try
         {
             const string insertBookingSql = @"
-                INSERT INTO dbo.Booking (BookingReference, ShowtimeId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod)
-                VALUES (@BookingReference, @ShowtimeId, @CustomerName, @CustomerEmail, @CustomerPhone, @TotalAmount, @BookingTime, @Status, @PaymentMethod);
+                INSERT INTO dbo.Booking (BookingReference, ShowtimeId, UserId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod)
+                VALUES (@BookingReference, @ShowtimeId, @UserId, @CustomerName, @CustomerEmail, @CustomerPhone, @TotalAmount, @BookingTime, @Status, @PaymentMethod);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             var bookingId = await connection.ExecuteScalarAsync<int>(insertBookingSql, booking, transaction);
@@ -65,7 +65,7 @@ public class BookingRepository : IBookingRepository
     {
         using var connection = _factory.CreateConnection();
         const string bookingSql = @"
-            SELECT BookingId, BookingReference, ShowtimeId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
+            SELECT BookingId, BookingReference, ShowtimeId, UserId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
             FROM dbo.Booking
             WHERE BookingReference = @Reference";
 
@@ -90,7 +90,7 @@ public class BookingRepository : IBookingRepository
     {
         using var connection = _factory.CreateConnection();
         const string bookingSql = @"
-            SELECT BookingId, BookingReference, ShowtimeId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
+            SELECT BookingId, BookingReference, ShowtimeId, UserId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
             FROM dbo.Booking
             WHERE BookingId = @BookingId";
 
@@ -115,12 +115,51 @@ public class BookingRepository : IBookingRepository
     {
         using var connection = _factory.CreateConnection();
         const string sql = @"
-            SELECT TOP (@Count) BookingId, BookingReference, ShowtimeId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
+            SELECT TOP (@Count) BookingId, BookingReference, ShowtimeId, UserId, CustomerName, CustomerEmail, CustomerPhone, TotalAmount, BookingTime, Status, PaymentMethod
             FROM dbo.Booking
             ORDER BY BookingTime DESC";
 
         var result = await connection.QueryAsync<Booking>(sql, new { Count = count });
         return result.ToList();
+    }
+
+    public async Task<IEnumerable<Booking>> GetBookingsByCustomerAsync(int? userId, string? email, string? phone)
+    {
+        using var connection = _factory.CreateConnection();
+        const string sql = @"
+            SELECT b.BookingId, b.BookingReference, b.ShowtimeId, b.UserId, b.CustomerName, b.CustomerEmail, b.CustomerPhone, b.TotalAmount, b.BookingTime, b.Status, b.PaymentMethod
+            FROM dbo.Booking b
+            WHERE (@UserId IS NOT NULL AND b.UserId = @UserId)
+               OR (@Email IS NOT NULL AND @Email <> '' AND LOWER(b.CustomerEmail) = LOWER(@Email))
+               OR (@Phone IS NOT NULL AND @Phone <> '' AND b.CustomerPhone = @Phone)
+            ORDER BY b.BookingTime DESC";
+
+        var bookings = (await connection.QueryAsync<Booking>(sql, new { UserId = userId, Email = email?.Trim(), Phone = phone?.Trim() })).ToList();
+
+        if (bookings.Count > 0)
+        {
+            var bookingIds = bookings.Select(b => b.BookingId).ToList();
+            const string ticketsSql = @"
+                SELECT t.TicketId, t.BookingId, t.ShowtimeId, t.SeatId, t.TicketPrice, t.TicketCode,
+                       s.RowCode + CAST(s.SeatNumber AS VARCHAR(5)) AS SeatDisplayName,
+                       s.SeatType
+                FROM dbo.Ticket t
+                INNER JOIN dbo.Seat s ON t.SeatId = s.SeatId
+                WHERE t.BookingId IN @BookingIds";
+
+            var tickets = (await connection.QueryAsync<Ticket>(ticketsSql, new { BookingIds = bookingIds })).ToList();
+            var ticketLookup = tickets.GroupBy(t => t.BookingId).ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var b in bookings)
+            {
+                if (ticketLookup.TryGetValue(b.BookingId, out var bTickets))
+                {
+                    b.Tickets = bTickets;
+                }
+            }
+        }
+
+        return bookings;
     }
 
     public async Task<IEnumerable<OccupancyReportDto>> GetOccupancyReportAsync()

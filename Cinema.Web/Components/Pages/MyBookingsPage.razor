@@ -1,0 +1,202 @@
+﻿@page "/my-bookings"
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IViewMyBookingsUseCase ViewMyBookingsUseCase
+@inject IViewShowtimesUseCase ViewShowtimesUseCase
+@inject NavigationManager Navigation
+
+<PageTitle>Vé Của Tôi - Starlight Cinema Huế</PageTitle>
+
+<div class="container py-4">
+    <!-- User Profile Header -->
+    <div class="p-4 rounded-3 shadow-sm mb-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(255,255,255,0.08);">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 56px; height: 56px;">
+                    @(_userName.Length > 0 ? _userName[0].ToString().ToUpper() : "U")
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h4 class="fw-bold text-white mb-0">@_userName</h4>
+                        <span class="badge bg-warning text-dark fw-bold">Thành Viên Rạp</span>
+                    </div>
+                    <div class="text-white-50 small mt-1">
+                        <i class="bi bi-envelope me-1"></i>@_userEmail
+                        @if (!string.IsNullOrEmpty(_userPhone))
+                        {
+                            <span class="mx-2">•</span>
+                            <i class="bi bi-telephone me-1"></i>@_userPhone
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="/" class="btn btn-cinema-gold btn-sm px-3 fw-bold">
+                    <i class="bi bi-film me-1"></i>Đặt Vé Mới
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking List Section -->
+    <div class="card card-clean p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h4 class="fw-bold text-white mb-1">
+                    <i class="bi bi-ticket-perforated-fill text-warning me-2"></i>Lịch Sử & Danh Sách Vé Của Bạn
+                </h4>
+                <p class="text-muted small mb-0">
+                    Toàn bộ vé xem phim bạn đã đặt trực tuyến tại Starlight Cinema Huế
+                </p>
+            </div>
+            <div class="badge bg-primary fs-6 px-3 py-2">
+                @_bookings.Count đơn vé
+            </div>
+        </div>
+
+        @if (_isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải lịch sử vé...</span>
+                </div>
+                <p class="text-muted mt-2">Đang tải danh sách vé của bạn...</p>
+            </div>
+        }
+        else if (_bookings.Count == 0)
+        {
+            <div class="text-center py-5">
+                <div class="text-muted display-4 mb-3">
+                    <i class="bi bi-ticket-detailed"></i>
+                </div>
+                <h5 class="fw-bold text-white">Bạn chưa có đơn đặt vé nào</h5>
+                <p class="text-muted small">Hãy chọn bộ phim bạn yêu thích và trải nghiệm dịch vụ xem phim hàng đầu tại Huế!</p>
+                <a href="/" class="btn btn-cinema-gold px-4 py-2 mt-2 fw-bold">
+                    Khám Phá Phim Đang Chiếu
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var booking in _bookings)
+                {
+                    var showtime = _showtimesLookup.GetValueOrDefault(booking.ShowtimeId);
+
+                    <div class="col-lg-6">
+                        <div class="p-3 rounded-3 border h-100 d-flex flex-column justify-content-between" style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1) !important;">
+                            <div>
+                                <!-- Top Bar: Reference & Status -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="font-monospace text-warning fw-bold fs-6">
+                                        @booking.BookingReference
+                                    </span>
+                                    <span class="badge bg-success-subtle text-success">
+                                        @booking.Status
+                                    </span>
+                                </div>
+
+                                <!-- Movie Title & Showtime -->
+                                <h5 class="fw-bold text-white mb-1">
+                                    @(showtime?.MovieTitle ?? "Phim Chiếu Rạp")
+                                </h5>
+                                <div class="small text-white-50 mb-3">
+                                    <i class="bi bi-clock-fill text-primary me-1"></i>
+                                    @(showtime?.StartTime.ToString("HH:mm - dd/MM/yyyy") ?? booking.BookingTime.ToString("HH:mm - dd/MM/yyyy"))
+                                    <span class="mx-2">•</span>
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                    @(showtime?.AuditoriumName ?? "Phòng chiếu")
+                                </div>
+
+                                <!-- Seats & Total -->
+                                <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 mb-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Ghế đã đặt (@booking.Tickets.Count vé):</small>
+                                        <strong class="text-primary">
+                                            @string.Join(", ", booking.Tickets.Select(t => t.SeatDisplayName))
+                                        </strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">Tổng tiền:</small>
+                                        <strong class="text-success fs-6">@booking.TotalAmount.ToString("N0") đ</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                                <small class="text-muted font-monospace" style="font-size: 0.75rem;">
+                                    Đặt lúc: @booking.BookingTime.ToString("dd/MM/yyyy HH:mm")
+                                </small>
+                                <a href="/confirmation/@booking.BookingReference" class="btn btn-sm btn-outline-warning fw-bold">
+                                    <i class="bi bi-qr-code me-1"></i>Xem Vé & QR
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private string _userName = "";
+    private string _userEmail = "";
+    private string _userPhone = "";
+    private int? _userId;
+
+    private List<Booking> _bookings = new();
+    private Dictionary<int, Showtime> _showtimesLookup = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDataAndBookings();
+    }
+
+    private async Task LoadUserDataAndBookings()
+    {
+        _isLoading = true;
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                _userName = user.Identity.Name ?? "Thành viên";
+                _userEmail = user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                _userPhone = user.FindFirst("PhoneNumber")?.Value ?? "";
+
+                if (int.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var id))
+                {
+                    _userId = id;
+                }
+
+                var list = await ViewMyBookingsUseCase.ExecuteAsync(_userId, _userEmail, _userPhone);
+                _bookings = list.ToList();
+
+                // Tải trước thông tin showtime
+                var showtimeIds = _bookings.Select(b => b.ShowtimeId).Distinct();
+                foreach (var sId in showtimeIds)
+                {
+                    var st = await ViewShowtimesUseCase.ExecuteGetByIdAsync(sId);
+                    if (st != null)
+                    {
+                        _showtimesLookup[sId] = st;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading my bookings: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}
