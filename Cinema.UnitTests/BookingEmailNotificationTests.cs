@@ -1,4 +1,4 @@
-﻿using Cinema.CoreBusiness.Models;
+using Cinema.CoreBusiness.Models;
 using Cinema.UseCases.Bookings;
 using Cinema.UseCases.DTOs;
 using Cinema.UseCases.PluginInterfaces.DataStore;
@@ -78,6 +78,8 @@ public class BookingEmailNotificationTests
         public IEnumerable<int> GetMyHeldSeatIds(int showtimeId, string sessionId) => Enumerable.Empty<int>();
         public DateTime? GetHoldExpiryTime(int showtimeId, string sessionId) => DateTime.Now.AddMinutes(5);
         public void CleanExpiredHolds() { }
+        public void ReleaseAllBySession(string sessionId) { }
+        public void ClearAllHolds() { }
     }
 
     private class FakeEmailService : IEmailService

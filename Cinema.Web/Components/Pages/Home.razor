@@ -80,6 +80,45 @@
                 Tất Cả Suất Chiếu
             </button>
         </div>
+
+    <!-- Search Bar & Quick Genre Filters -->
+    <div class="row g-3 align-items-center mb-4 p-3 rounded-4" 
+         style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255, 255, 255, 0.07); backdrop-filter: blur(8px);">
+        <!-- Search Input with icon -->
+        <div class="col-12 col-lg-7">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-warning fs-6"></i>
+                <input type="text"
+                       class="form-control text-white border-secondary ps-5 pe-5 py-2 rounded-pill shadow-sm"
+                       placeholder="T?m ki?m phim theo t?n, th? lo?i, di?n vi?n, ??o di?n..."
+                       value="@_searchKeyword"
+                       @oninput="HandleSearchInput"
+                       style="background: #0d131f !important; border-color: rgba(255, 255, 255, 0.15) !important;" />
+                @if (!string.IsNullOrWhiteSpace(_searchKeyword))
+                {
+                    <button class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 text-white-50 text-decoration-none p-0"
+                            @onclick="ClearSearch" title="Xóa từ khóa tìm kiếm">
+                        <i class="bi bi-x-circle-fill fs-5 text-secondary"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Genre Filters -->
+        <div class="col-12 col-lg-5">
+            <div class="d-flex align-items-center gap-1 flex-wrap justify-content-lg-end">
+                <span class="small text-secondary me-1"><i class="bi bi-funnel me-1"></i>Thể loại:</span>
+                @foreach (var genre in _genreCategories)
+                {
+                    <button class="btn btn-sm rounded-pill px-3 py-1 @(_selectedGenre == genre ? "btn-warning text-dark fw-bold shadow-sm" : "btn-outline-secondary text-light")"
+                            style="font-size: 0.8rem; border-color: rgba(255, 255, 255, 0.15);"
+                            @onclick="() => FilterByGenre(genre)">
+                        @genre
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
     </div>
 
     @if (_isLoading)
@@ -97,10 +136,27 @@
             <i class="bi bi-info-circle-fill me-2 fs-5 text-warning"></i>Hiện tại chưa có suất chiếu nào trong khoảng thời gian này.
         </div>
     }
-    else
+    else if (!FilteredMovies.Any())
+    {
+        <div class="card p-5 text-center my-4 border-0 shadow-lg" 
+             style="background: rgba(17, 24, 39, 0.7); border: 1px dashed rgba(245, 158, 11, 0.3) !important; border-radius: 20px;">
+            <div class="mb-3">
+                <i class="bi bi-film text-warning" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="text-white fw-bold">Không tìm thấy phim phù hợp</h4>
+            <p class="text-secondary mx-auto mb-3" style="max-width: 500px; color: #94a3b8 !important;">
+                Không có bộ phim nào khớp với từ khóa "<strong>@_searchKeyword</strong>" hoặc thể loại "<strong>@_selectedGenre</strong>".
+            </p>
+            <div>
+                <button class="btn btn-cinema-gold px-4 py-2 fw-bold" @onclick="ClearAllFilters">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc &amp; Xem tất cả phim
+                </button>
+            </div>
+        </div>
+    }
     {
         <div class="row g-4">
-            @foreach (var movie in _movies)
+            @foreach (var movie in FilteredMovies)
             {
                 var movieShowtimes = _showtimes.Where(s => s.MovieId == movie.MovieId).OrderBy(s => s.StartTime).ToList();
 
@@ -194,7 +250,7 @@
         </div>
 
         <div class="row g-4">
-            @foreach (var movie in _movies.Take(4))
+            @foreach (var movie in FilteredMovies.Take(4))
             {
                 <div class="col-6 col-md-3">
                     <MovieCardComponent Movie="@movie" OnSelectMovie="HandleCardSelectMovie" />
@@ -205,6 +261,56 @@
 </div>
 
 @code {
+    private string _searchKeyword = "";
+    private string _selectedGenre = "T\u1EA5t C\u1EA3";
+    private readonly string[] _genreCategories = new[] { "T\u1EA5t C\u1EA3", "H\u00E0nh \u0110\u1ED9ng", "Ho\u1EA1t H\u00ECnh", "H\u00E0i", "Kinh D\u1ECB", "Khoa H\u1ECDc Vi\u1EC5n T\u01B0\u1EDFng", "T\u00E2m L\u00FD" };
+
+    private void HandleSearchInput(ChangeEventArgs e)
+    {
+        _searchKeyword = e.Value?.ToString() ?? "";
+    }
+
+    private void ClearSearch()
+    {
+        _searchKeyword = "";
+    }
+
+    private void FilterByGenre(string genre)
+    {
+        _selectedGenre = genre;
+    }
+
+    private void ClearAllFilters()
+    {
+        _searchKeyword = "";
+        _selectedGenre = "T\u1EA5t C\u1EA3";
+    }
+
+    private IEnumerable<Movie> FilteredMovies
+    {
+        get
+        {
+            var list = _movies.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(_searchKeyword))
+            {
+                var q = _searchKeyword.Trim().ToLower();
+                list = list.Where(m =>
+                    (!string.IsNullOrEmpty(m.Title) && m.Title.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(m.Genre) && m.Genre.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(m.Director) && m.Director.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(m.Cast) && m.Cast.ToLower().Contains(q)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(_selectedGenre) && _selectedGenre != "T\u1EA5t C\u1EA3")
+            {
+                list = list.Where(m => !string.IsNullOrEmpty(m.Genre) && m.Genre.Contains(_selectedGenre, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return list;
+        }
+    }
+
     private void HandleCardSelectMovie(Movie movie)
     {
         var firstShowtime = _showtimes.FirstOrDefault(s => s.MovieId == movie.MovieId && s.StartTime > DateTime.Now);

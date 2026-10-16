@@ -25,7 +25,7 @@ public class SeatHoldingStateStore : ISeatHoldingStateStore
         var expiresAt = now.Add(duration);
         var seatList = seatIds.ToList();
 
-        // Kiá»ƒm tra xem cÃ³ gháº¿ nÃ o Ä‘ang bá»‹ giá»¯ bá»Ÿi phiÃªn khÃ¡c cÃ²n háº¡n khÃ´ng
+        // Kiểm tra xem có ghế nào đang bị giữ bởi phiên khác còn hạn không
         foreach (var seatId in seatList)
         {
             string key = $"{showtimeId}_{seatId}";
@@ -33,12 +33,12 @@ public class SeatHoldingStateStore : ISeatHoldingStateStore
             {
                 if (existingHold.ExpiresAt > now && existingHold.SessionId != sessionId)
                 {
-                    return false; // Gháº¿ Ä‘Ã£ bá»‹ ngÆ°á»i khÃ¡c giá»¯
+                    return false; // Ghế đã bị người khác giữ
                 }
             }
         }
 
-        // Äáº·t giá»¯ chá»— cho cÃ¡c gháº¿
+        // Đặt giữ chỗ cho các ghế
         foreach (var seatId in seatList)
         {
             string key = $"{showtimeId}_{seatId}";
@@ -74,6 +74,36 @@ public class SeatHoldingStateStore : ISeatHoldingStateStore
         {
             OnSeatsChanged?.Invoke(showtimeId);
         }
+    }
+
+    public void ReleaseAllBySession(string sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId)) return;
+
+        var keysToRemove = _holds
+            .Where(kvp => kvp.Value.SessionId == sessionId)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        bool anyRemoved = false;
+        foreach (var key in keysToRemove)
+        {
+            if (_holds.TryRemove(key, out _))
+            {
+                anyRemoved = true;
+            }
+        }
+
+        if (anyRemoved)
+        {
+            OnSeatsChanged?.Invoke(0);
+        }
+    }
+
+    public void ClearAllHolds()
+    {
+        _holds.Clear();
+        OnSeatsChanged?.Invoke(0);
     }
 
     public IEnumerable<int> GetHeldSeatIds(int showtimeId, string excludeSessionId = "")

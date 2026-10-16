@@ -1,5 +1,8 @@
-﻿@inject NavigationManager Navigation
+﻿@using Cinema.UseCases.PluginInterfaces.StateStore
+@inject NavigationManager Navigation
 @inject CustomAuthStateProvider AuthStateProvider
+@inject UserSessionService UserSession
+@inject ISeatHoldingStateStore HoldingStore
 @inject IJSRuntime JSRuntime
 
 <header class="cinema-navbar">
@@ -76,11 +79,8 @@
                 </Authorized>
                 <NotAuthorized>
                     <div class="d-flex align-items-center gap-2">
-                        <a href="/register" class="btn btn-outline-light btn-sm px-3" style="border-radius: 8px;">
-                            <i class="bi bi-person-plus me-1"></i>Đăng Ký
-                        </a>
                         <a href="/login" class="btn btn-cinema-gold btn-sm px-3 fw-bold" style="border-radius: 8px;">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Đăng Nhập
+                            <i class="bi bi-person-circle me-1"></i>Đăng Nhập / Đăng Ký
                         </a>
                     </div>
                 </NotAuthorized>
@@ -94,6 +94,19 @@
     {
         try
         {
+            if (!string.IsNullOrWhiteSpace(UserSession.SessionId))
+            {
+                HoldingStore.ReleaseAllBySession(UserSession.SessionId);
+            }
+            try
+            {
+                var clientSessionId = await JSRuntime.InvokeAsync<string>("getCinemaSessionId");
+                if (!string.IsNullOrWhiteSpace(clientSessionId))
+                {
+                    HoldingStore.ReleaseAllBySession(clientSessionId);
+                }
+            }
+            catch { }
             await JSRuntime.InvokeVoidAsync("clearCinemaSession");
         }
         catch { }

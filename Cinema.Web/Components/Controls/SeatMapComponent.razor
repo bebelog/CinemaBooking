@@ -112,12 +112,26 @@
                     <span class="badge bg-warning text-dark ms-2 fw-bold">@_selectedSeatIds.Count ghế</span>
                 }
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="Làm mới tình trạng ghế">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button class="btn btn-outline-secondary btn-sm text-light" @onclick="() => LoadSeatsAsync(false)" title="L?m m?i t?nh tr?ng gh?">
+                    <i class="bi bi-arrow-clockwise me-1"></i>L?m m?i
                 </button>
+                @if (_seats.Any(s => s.IsHeldByOther))
+                {
+                    <button class="btn btn-outline-warning btn-sm" @onclick="HandleResetAllHoldsForDemo" title="Gi?i ph?ng to?n b? gh? ?ang b? gi? t?m ?? ti?n ki?m th? nhanh">
+                        <i class="bi bi-unlock-fill me-1"></i>M? kh?a gh? t?m (Test/Demo)
+                    </button>
+                }
             </div>
         </div>
+
+        @if (_seats.Any(s => s.IsHeldByOther))
+        {
+            <div class="mt-2 p-2 rounded-2 small d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                <i class="bi bi-info-circle-fill fs-6 text-danger"></i>
+                <span>Gh? c? bi?u t??ng ?? ?ang ???c phi?n/kh?ch kh?c gi? t?m th?i trong v?ng t?i ?a 10 ph?t (Lu?t 1). Gh? s? t? m? sau 10 ph?t, khi kh?ch h?y/??ng xu?t, ho?c b?m n?t <strong>M? kh?a gh? t?m (Test/Demo)</strong> ?? x?a ngay khi ki?m th?.</span>
+            </div>
+        }
     }
 </div>
 
@@ -162,9 +176,12 @@
             try
             {
                 var clientSessionId = await JS.InvokeAsync<string>("getCinemaSessionId");
-                if (!string.IsNullOrWhiteSpace(clientSessionId) && clientSessionId != UserSession.SessionId)
+                if (!string.IsNullOrWhiteSpace(clientSessionId))
                 {
-                    UserSession.SetSessionId(clientSessionId);
+                    if (clientSessionId != UserSession.SessionId)
+                    {
+                        UserSession.SetSessionId(clientSessionId);
+                    }
                     await LoadSeatsAsync(notifyParent: true);
                     StateHasChanged();
                 }
@@ -195,6 +212,7 @@
         _loadError = null;
         try
         {
+            HoldingStore.CleanExpiredHolds();
             var result = await GetSeatMapUseCase.ExecuteAsync(ShowtimeId, UserSession.SessionId);
             _seats = result.ToList();
 
@@ -399,6 +417,16 @@
             await NotifyParentSelectionAsync();
             await LoadSeatsAsync(notifyParent: true);
         }
+    }
+
+    private async Task HandleResetAllHoldsForDemo()
+    {
+        HoldingStore.ClearAllHolds();
+        _selectedSeatIds.Clear();
+        StopTimer();
+        await NotifyParentSelectionAsync();
+        await LoadSeatsAsync(notifyParent: true);
+        StateHasChanged();
     }
 
     private async Task NotifyParentSelectionAsync()
