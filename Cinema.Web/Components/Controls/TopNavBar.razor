@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject CustomAuthStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <header class="cinema-navbar">
     <div class="container-fluid px-lg-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
@@ -91,7 +92,12 @@
 @code {
     private async Task HandleLogout()
     {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("clearCinemaSession");
+        }
+        catch { }
         await AuthStateProvider.LogoutAsync();
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

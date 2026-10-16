@@ -23,25 +23,28 @@
 <body>
     <Routes @rendermode="InteractiveServer" />
     <script>
+        // Sử dụng sessionStorage để mỗi tab trình duyệt là một khách hàng riêng biệt (độc lập ghế và giỏ hàng)
+        // Khi F5 lại trang, sessionStorage vẫn lưu giữ ghế và bộ đếm 10 phút của tab đó!
         window.getCinemaSessionId = function () {
             try {
-                var match = document.cookie.match(/(?:^|; )Cinema_UserSessionId=([^;]*)/);
-                if (match && match[1]) {
-                    localStorage.setItem('Cinema_UserSessionId', match[1]);
-                    return match[1];
+                var tabId = sessionStorage.getItem('Cinema_TabSessionId');
+                if (tabId && tabId.length > 5) {
+                    return tabId;
                 }
-                var ls = localStorage.getItem('Cinema_UserSessionId');
-                if (ls) {
-                    document.cookie = "Cinema_UserSessionId=" + ls + "; path=/; max-age=604800; SameSite=Lax";
-                    return ls;
-                }
-                var newId = 'user_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
-                localStorage.setItem('Cinema_UserSessionId', newId);
-                document.cookie = "Cinema_UserSessionId=" + newId + "; path=/; max-age=604800; SameSite=Lax";
+                var newId = 'session_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+                sessionStorage.setItem('Cinema_TabSessionId', newId);
                 return newId;
             } catch (e) {
-                return '';
+                return 'session_' + Date.now().toString(36);
             }
+        };
+
+        window.clearCinemaSession = function () {
+            try {
+                sessionStorage.removeItem('Cinema_TabSessionId');
+                localStorage.removeItem('Cinema_UserSessionId');
+                document.cookie = "Cinema_UserSessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            } catch (e) {}
         };
     </script>
     <script src="_framework/blazor.web.js"></script>
